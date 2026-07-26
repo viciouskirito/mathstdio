@@ -185,7 +185,6 @@ body {
 .nav-item.active {
   background: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
-  box-shadow: inset 3px 0 0 var(--md-sys-color-primary);
 }
 
 .nav-icon {
@@ -440,11 +439,20 @@ input[type="number"]:focus {
 input[type="color"].color-picker {
   width: 36px;
   height: 36px;
-  padding: 2px;
-  border: 1px solid var(--md-sys-color-outline-variant);
+  padding: 0;
+  border: 2px solid var(--md-sys-color-outline-variant);
   border-radius: 10px;
-  background: var(--md-sys-color-surface);
+  background: transparent;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="color"].color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"].color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 8px;
 }
 
 /* ========== Graph Panel ========== */
@@ -453,6 +461,31 @@ input[type="color"].color-picker {
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.func-row:hover {
+  background: var(--md-sys-color-surface-variant);
+}
+.func-row.selected {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+.func-sel-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--md-sys-color-outline);
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.func-row.selected .func-sel-dot {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 3px rgba(103,80,164,0.2);
 }
 .func-row label {
   font-family: 'Roboto Mono', Consolas, monospace;
@@ -731,23 +764,6 @@ input[type="color"].color-picker {
   align-items: center;
   flex-wrap: wrap;
 }
-.ai-controls select {
-  flex: 1;
-  min-width: 180px;
-  padding: 12px 14px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 10px;
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  font-size: 18px;
-  font-family: inherit;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-.ai-controls select:focus {
-  border-color: var(--md-sys-color-primary);
-}
 
 /* ========== Responsive ========== */
 @media (max-width: 1024px) {
@@ -905,7 +921,8 @@ input[type="color"].color-picker {
             函数定义
           </div>
           <div id="funcRows">
-            <div class="func-row" data-func="0">
+            <div class="func-row selected" data-func="0">
+              <span class="func-sel-dot"></span>
               <label>f(x)=</label>
               <input type="text" class="func-input" value="sin(x)" placeholder="输入函数...">
               <input type="color" class="color-picker" value="#0078D4">
@@ -956,7 +973,6 @@ input[type="color"].color-picker {
           AI 深度分析
         </div>
         <div class="ai-controls">
-          <select id="graphFuncSelect"></select>
           <button class="btn btn-primary" id="analyzeGraphBtn">分析选中</button>
           <button class="btn btn-outline" id="analyzeGraphAllBtn">分析全部</button>
         </div>
@@ -1404,53 +1420,45 @@ function drawBaseGraph(fast) {
   if (!fast) {
     specialPoints.forEach(sp => {
       ctx.save();
-      const isIntersection = sp.type === 'intersection';
-      const size = isIntersection ? 9 : (sp.type === 'max' || sp.type === 'min') ? 8 : 7;
-      ctx.shadowColor = sp.color || '#333';
-      ctx.shadowBlur = isIntersection ? 10 : 8;
+      const isSpecial = sp.type === 'max' || sp.type === 'min';
+      const isRoot = sp.type === 'root';
+      const radius = isSpecial ? 8 : isRoot ? 7 : 6;
+
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 6;
       ctx.strokeStyle = '#fff';
-      ctx.lineWidth = isIntersection ? 3 : 2.5;
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      if (sp.type === 'root') {
-        ctx.arc(sp.mx, sp.my, size, 0, Math.PI * 2);
-      } else if (sp.type === 'max' || sp.type === 'min') {
-        ctx.moveTo(sp.mx, sp.my - size);
-        ctx.lineTo(sp.mx + size, sp.my);
-        ctx.lineTo(sp.mx, sp.my + size);
-        ctx.lineTo(sp.mx - size, sp.my);
-        ctx.closePath();
-      } else if (sp.type === 'yintercept') {
-        ctx.rect(sp.mx - size * 0.7, sp.my - size * 0.7, size * 1.4, size * 1.4);
-      } else {
-        ctx.arc(sp.mx, sp.my, size, 0, Math.PI * 2);
-      }
+      ctx.arc(sp.mx, sp.my, radius, 0, Math.PI * 2);
       ctx.stroke();
+
       ctx.shadowBlur = 0;
       ctx.fillStyle = sp.color || '#333';
       ctx.beginPath();
-      if (sp.type === 'root') {
-        ctx.arc(sp.mx, sp.my, size - 2.5, 0, Math.PI * 2);
-      } else if (sp.type === 'max' || sp.type === 'min') {
-        ctx.moveTo(sp.mx, sp.my - size + 2);
-        ctx.lineTo(sp.mx + size - 2, sp.my);
-        ctx.lineTo(sp.mx, sp.my + size - 2);
-        ctx.lineTo(sp.mx - size + 2, sp.my);
-        ctx.closePath();
-      } else if (sp.type === 'yintercept') {
-        ctx.rect(sp.mx - size * 0.5 + 1, sp.my - size * 0.5 + 1, size - 2, size - 2);
-      } else {
-        ctx.arc(sp.mx, sp.my, size - 3, 0, Math.PI * 2);
-      }
+      ctx.arc(sp.mx, sp.my, radius - 1.5, 0, Math.PI * 2);
       ctx.fill();
-      if (isIntersection) {
+
+      if (isSpecial) {
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sp.type === 'max' ? '▲' : '▼', sp.mx, sp.my + 1);
+      } else if (isRoot) {
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        const cross = size - 4;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(sp.mx - cross * 0.6, sp.my - cross * 0.6);
-        ctx.lineTo(sp.mx + cross * 0.6, sp.my + cross * 0.6);
-        ctx.moveTo(sp.mx + cross * 0.6, sp.my - cross * 0.6);
-        ctx.lineTo(sp.mx - cross * 0.6, sp.my + cross * 0.6);
+        const r2 = radius - 4;
+        ctx.moveTo(sp.mx - r2, sp.my);
+        ctx.lineTo(sp.mx + r2, sp.my);
+        ctx.stroke();
+      } else if (sp.type === 'yintercept') {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        const r2 = radius - 4;
+        ctx.moveTo(sp.mx, sp.my - r2);
+        ctx.lineTo(sp.mx, sp.my + r2);
         ctx.stroke();
       }
       ctx.restore();
@@ -1463,46 +1471,75 @@ function drawBaseGraph(fast) {
 function drawSnapOverlay() {
   if (!snapPoint) return;
   const w = canvas.width, h = canvas.height;
-  const { mx, my, x, y, type, label } = snapPoint;
+  const { mx, my, x, y, type, label, color } = snapPoint;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   ctx.save();
-  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+
+  // Crosshair lines
+  ctx.strokeStyle = isDark ? 'rgba(200,200,220,0.3)' : 'rgba(0,0,0,0.18)';
   ctx.lineWidth = 1;
-  ctx.setLineDash([6, 4]);
+  ctx.setLineDash([8, 5]);
   ctx.beginPath(); ctx.moveTo(0, my); ctx.lineTo(w, my); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(mx, 0); ctx.lineTo(mx, h); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#E8453C';
-  ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2); ctx.fill();
+
+  // Outer glow
+  const accent = color || (type ? '#E8453C' : '#6750A4');
+  ctx.shadowColor = accent;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(mx, my, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Inner white dot
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(mx, my, 2.5, 0, Math.PI * 2); ctx.fill();
-  const labelText = type ? `${label} (${formatNum(x)}, ${formatNum(y)})` : `(${formatNum(x)}, ${formatNum(y)})`;
-  ctx.font = '28px Consolas, monospace';
-  const tw = ctx.measureText(labelText).width;
-  const lx = Math.min(mx + 14, w - tw - 10);
-  const ly = my - 16;
-  const bh = 36;
-  ctx.fillStyle = 'rgba(0,0,0,0.75)';
-  const r = 6;
+  ctx.beginPath(); ctx.arc(mx, my, 3, 0, Math.PI * 2); ctx.fill();
+
+  // Label
+  const labelText = type
+    ? `${label} (${formatNum(x)}, ${formatNum(y)})`
+    : `(${formatNum(x)}, ${formatNum(y)})`;
+  ctx.font = 'bold 26px "Roboto Mono", Consolas, monospace';
+  const m = ctx.measureText(labelText);
+  const tw = m.width;
+  const bh = type ? 52 : 40;
+  const padX = 14, padY = type ? 14 : 12;
+  const lx = Math.min(mx + 16, w - tw - padX * 2 - 10);
+  const ly = Math.max(my - bh - padY * 2, 8);
+
+  // Tooltip background
+  ctx.fillStyle = isDark ? 'rgba(40,40,55,0.92)' : 'rgba(28,27,31,0.88)';
+  const rr = 10;
   ctx.beginPath();
-  ctx.moveTo(lx + r, ly); ctx.lineTo(lx + tw + r, ly);
-  ctx.arcTo(lx + tw + r * 2, ly, lx + tw + r * 2, ly + r, r);
-  ctx.lineTo(lx + tw + r * 2, ly + bh); ctx.arcTo(lx + tw + r * 2, ly + bh + r, lx + tw + r, ly + bh + r, r);
-  ctx.lineTo(lx + r, ly + bh + r); ctx.arcTo(lx, ly + bh + r, lx, ly + bh, r);
-  ctx.lineTo(lx, ly + r); ctx.arcTo(lx, ly, lx + r, ly, r);
+  ctx.moveTo(lx + rr, ly);
+  ctx.lineTo(lx + tw + padX * 2 - rr, ly);
+  ctx.arcTo(lx + tw + padX * 2, ly, lx + tw + padX * 2, ly + rr, rr);
+  ctx.lineTo(lx + tw + padX * 2, ly + bh + padY * 2 - rr);
+  ctx.arcTo(lx + tw + padX * 2, ly + bh + padY * 2, lx + tw + padX * 2 - rr, ly + bh + padY * 2, rr);
+  ctx.lineTo(lx + rr, ly + bh + padY * 2);
+  ctx.arcTo(lx, ly + bh + padY * 2, lx, ly + bh + padY * 2 - rr, rr);
+  ctx.lineTo(lx, ly + rr);
+  ctx.arcTo(lx, ly, lx + rr, ly, rr);
   ctx.fill();
-  ctx.fillStyle = '#fff';
+
+  // Tooltip border accent
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
   ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
+  ctx.textBaseline = 'top';
   if (type) {
-    ctx.font = '22px sans-serif';
-    ctx.fillStyle = '#FFD700';
-    ctx.fillText(label, lx + 8, ly + 10);
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillStyle = accent;
+    ctx.fillText(label, lx + padX, ly + padY - 2);
+    ctx.font = '20px "Roboto Mono", Consolas, monospace';
     ctx.fillStyle = '#fff';
-    ctx.font = '22px Consolas, monospace';
-    ctx.fillText(`(${formatNum(x)}, ${formatNum(y)})`, lx + 8, ly + 28);
+    ctx.fillText(`(${formatNum(x)}, ${formatNum(y)})`, lx + padX, ly + padY + 22);
   } else {
-    ctx.font = '26px Consolas, monospace';
-    ctx.fillText(labelText, lx + 8, ly + 18);
+    ctx.font = 'bold 24px "Roboto Mono", Consolas, monospace';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(labelText, lx + padX, ly + padY);
   }
   ctx.restore();
 }
@@ -1768,6 +1805,7 @@ document.getElementById('funcRows').addEventListener('click', e => {
     div.className = 'func-row';
     div.dataset.func = idx;
     div.innerHTML = `
+      <span class="func-sel-dot"></span>
       <label>f(x)=</label>
       <input type="text" class="func-input" value="x" placeholder="输入函数...">
       <input type="color" class="color-picker" value="${colors[idx % colors.length]}">
@@ -1782,8 +1820,19 @@ document.getElementById('funcRows').addEventListener('click', e => {
     const rows = document.querySelectorAll('#funcRows > .func-row');
     if (rows.length <= 1) return;
     const row = e.target.closest('.func-row');
+    const wasSelected = row.classList.contains('selected');
     row.remove();
     reindexFuncRows();
+    if (wasSelected) {
+      const first = document.querySelector('#funcRows > .func-row');
+      if (first) first.classList.add('selected');
+    }
+  }
+  // Click on a function row (not on buttons/inputs) to select it
+  const row = e.target.closest('.func-row');
+  if (row && !e.target.closest('button') && !e.target.closest('input[type="text"]') && !e.target.closest('input[type="color"]')) {
+    document.querySelectorAll('#funcRows > .func-row').forEach(function(r) { r.classList.remove('selected'); });
+    row.classList.add('selected');
   }
 });
 
@@ -2230,27 +2279,6 @@ function setAIResult(el, loading) {
 }
 
 // ---- Graph AI Analysis ----
-function updateGraphFuncSelect() {
-  var sel = document.getElementById('graphFuncSelect');
-  if (!sel) return;
-  sel.innerHTML = '';
-  document.querySelectorAll('#funcRows .func-row').forEach(function(row, i) {
-    var expr = row.querySelector('.func-input').value.trim();
-    if (!expr) return;
-    var opt = document.createElement('option');
-    opt.value = i; opt.textContent = 'f' + i + '(x) = ' + expr;
-    sel.appendChild(opt);
-  });
-  if (!sel.options.length) { var opt = document.createElement('option'); opt.textContent = '无函数'; sel.appendChild(opt); }
-}
-
-document.getElementById('funcRows').addEventListener('input', function(e) {
-  if (e.target.classList.contains('func-input')) updateGraphFuncSelect();
-});
-document.getElementById('funcRows').addEventListener('click', function(e) {
-  if (e.target.classList.contains('add-func') || e.target.classList.contains('remove-func')) setTimeout(updateGraphFuncSelect, 50);
-});
-
 async function analyzeGraphFunctions(all) {
   var resultEl = document.getElementById('aiGraphResult');
   setAIResult(resultEl, true);
@@ -2259,19 +2287,19 @@ async function analyzeGraphFunctions(all) {
     var dataURL = canvas ? canvas.toDataURL('image/png') : null;
     if (!dataURL) throw new Error('无法获取图像');
     var funcExprs = [];
+    var selectedExpr = '';
     document.querySelectorAll('#funcRows .func-row').forEach(function(row) {
       var e = row.querySelector('.func-input').value.trim();
       if (e) funcExprs.push(e);
+      if (row.classList.contains('selected') && e) selectedExpr = e;
     });
     if (!funcExprs.length) throw new Error('请先定义函数');
+    if (!selectedExpr) selectedExpr = funcExprs[0];
     var prompt;
     if (all) {
       prompt = '请分析这张数学函数图像。图中包含以下函数：' + funcExprs.map(function(f,i){return 'f'+i+'(x)='+f}).join('；') + '。请分别分析每个函数的类型、关键特征(单调性、奇偶性、周期性)、零点、极值点，并比较它们之间的关系。用中文回答。';
     } else {
-      var sel = document.getElementById('graphFuncSelect');
-      var idx = sel ? parseInt(sel.value) : 0;
-      if (isNaN(idx) || idx >= funcExprs.length) idx = 0;
-      prompt = '请分析这张数学函数图像中的函数 f(x)=' + funcExprs[idx] + '。包括：1.函数类型；2.关键特征(单调性、奇偶性、周期性、渐近线)；3.零点、极值点；4.整体形态。用中文回答。';
+      prompt = '请分析这张数学函数图像中的函数 f(x)=' + selectedExpr + '。包括：1.函数类型；2.关键特征(单调性、奇偶性、周期性、渐近线)；3.零点、极值点；4.整体形态。用中文回答。';
     }
     if (dataURL.length > 2000000) {
       prompt = '请分析以下数学函数（仅文字描述）：' + prompt.replace('这张数学函数图像中的','');
@@ -2370,7 +2398,6 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
 });
 
 // Init
-updateGraphFuncSelect();
 setTimeout(addCurveAISection, 200);
 setTimeout(addVectorAISection, 200);
 </script>
