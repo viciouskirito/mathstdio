@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Studio · 可视化数学实验室</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --md-sys-color-primary: #6750A4;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #EADDFF;
+  --md-sys-color-on-primary-container: #21005D;
+  --md-sys-color-secondary: #625B71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E8DEF8;
+  --md-sys-color-on-secondary-container: #1D192B;
+  --md-sys-color-tertiary: #7D5260;
+  --md-sys-color-surface: #FEF7FF;
+  --md-sys-color-surface-variant: #E7E0EC;
+  --md-sys-color-on-surface: #1C1B1F;
+  --md-sys-color-on-surface-variant: #49454F;
+  --md-sys-color-outline: #79747E;
+  --md-sys-color-outline-variant: #CAC4D0;
+  --md-sys-color-surface-tint: #6750A4;
+  --md-sys-color-background: #FFFBFE;
+  --md-sys-color-error: #B3261E;
+  --md-sys-color-on-error: #FFFFFF;
+
+  /* 模块强调色 */
+  --graph-accent: #6750A4;
+  --curve-accent: #7D5260;
+  --vector-accent: #00639B;
+
+  /* 尺寸 */
+  --sidebar-width: 260px;
+  --radius-xl: 28px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  /* 阴影 Material */
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-2: 0 3px 6px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-3: 0 6px 12px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+
+  /* 动画 */
+  --ease-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1.0);
+}
+
+html, body { height: 100%; }
+body {
+  font-family: 'Roboto', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== Sidebar ========== */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--md-sys-color-surface);
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px 16px;
+  z-index: 10;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 12px 24px;
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-icon svg { width: 26px; height: 26px; }
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+}
+.brand-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  letter-spacing: 0.2px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s var(--ease-standard), color 0.2s var(--ease-standard), transform 0.15s var(--ease-standard);
+  text-align: left;
+}
+.nav-item:hover {
+  background: var(--md-sys-color-surface-variant);
+}
+.nav-item:active {
+  transform: scale(0.98);
+}
+.nav-item.active {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+  width: 28px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  margin-top: 12px;
+}
+
+/* ========== Main Content ========== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--md-sys-color-background);
+}
+
+.topbar {
+  padding: 28px 32px 12px;
+  background: var(--md-sys-color-background);
+}
+.topbar h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 4px;
+}
+.page-subtitle {
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 500;
+}
+
+/* ========== Panels ========== */
+.panel {
+  display: none;
+  padding: 12px 32px 32px;
+  animation: panelIn 0.3s var(--ease-emphasized);
+}
+.panel.active {
+  display: block;
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.control-panel,
+.visual-panel {
+  background: var(--md-sys-color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.control-panel {
+  padding: 24px;
+}
+
+.visual-panel {
+  padding: 0;
+  overflow: hidden;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 16px;
+  letter-spacing: 0.2px;
+}
+.section-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ========== Buttons ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-standard), box-shadow 0.2s var(--ease-standard), background 0.2s var(--ease-standard);
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+.btn-primary:hover {
+  background: #7c6bb0;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+}
+.btn-outline:hover {
+  background: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* ========== Inputs ========== */
+input[type="text"],
+input[type="number"],
+input[type="color"] {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+input[type="text"],
+input[type="number"] {
+  padding: 12px 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-sm);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.15);
+  background: var(--md-sys-color-surface);
+}
+
+input[type="color"].color-picker {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 10px;
+  background: var(--md-sys-color-surface);
+  cursor: pointer;
+}
+
+/* ========== Graph Panel ========== */
+.func-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.func-row label {
+  font-family: 'Roboto Mono', Consolas, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+}
+.func-row .func-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.range-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.range-grid.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+.range-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.range-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.range-field input[type="number"] {
+  width: 100%;
+}
+
+.control-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.graph-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 480px;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.graph-wrapper canvas {
+  display: block;
+  width: 100%;
+  height: 420px;
+  touch-action: none;
+}
+.graph-coords {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(28, 27, 31, 0.85);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: 'Roboto Mono', Consolas, monospace;
+  font-size: 13px;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+.graph-legend {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  min-width: 140px;
+  box-shadow: var(--shadow-1);
+  backdrop-filter: blur(8px);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.legend-item:last-child { margin-bottom: 0; }
+.legend-line {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+}
+.legend-text {
+  color: var(--md-sys-color-on-surface);
+  font-family: 'Roboto Mono', Consolas, monospace;
+}
+
+/* ========== 3D Curve Panel ========== */
+.preset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.preset-chip,
+.op-chip {
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.preset-chip:hover,
+.op-chip:hover {
+  background: var(--md-sys-color-surface-variant);
+}
+.preset-chip.active,
+.op-chip.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+  transform: scale(0.98);
+}
+
+.param-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.param-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.param-field label {
+  font-family: 'Roboto Mono', Consolas, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  width: 42px;
+  flex-shrink: 0;
+}
+.param-field input[type="text"] {
+  flex: 1;
+}
+
+.viewer3d-wrapper {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 480px;
+  background: #1C1B1F;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.viewer3d-wrapper canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+.viewer3d-info {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+
+/* ========== Vector Panel ========== */
+.vector-coords-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.vector-coord-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vector-coord-input label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.vector-coord-input input[type="number"] {
+  width: 100%;
+}
+
+.op-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.vector-result {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--md-sys-color-surface-variant);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--md-sys-color-on-surface);
+  min-height: 64px;
+}
+.vector-result .label {
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 600;
+}
+.vector-result .value {
+  font-family: 'Roboto Mono', Consolas, monospace;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1024px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .visual-panel {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    overflow-x: auto;
+  }
+  .sidebar-brand {
+    padding: 0 8px 0 0;
+    margin-right: auto;
+  }
+  .brand-icon { width: 38px; height: 38px; }
+  .brand-icon svg { width: 22px; height: 22px; }
+  .brand-subtitle { display: none; }
+  .sidebar-nav {
+    flex-direction: row;
+    gap: 6px;
+  }
+  .nav-item {
+    width: auto;
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+  .nav-label { display: none; }
+  .sidebar-footer { display: none; }
+
+  .topbar {
+    padding: 20px 20px 8px;
+  }
+  .topbar h1 { font-size: 24px; }
+  .panel { padding: 8px 20px 20px; }
+  .control-panel { padding: 20px; }
+}
+
+@media (max-width: 480px) {
+  .range-grid,
+  .range-grid.two-col {
+    grid-template-columns: 1fr;
+  }
+  .vector-coords-row {
+    grid-template-columns: 1fr;
+  }
+  .op-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .preset-grid {
+    gap: 8px;
+  }
+  .preset-chip,
+  .op-chip {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div class="app-shell">
+  <!-- 左侧固定侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          <line x1="8" y1="7" x2="16" y2="7"/>
+          <line x1="8" y1="11" x2="12" y2="11"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Math Studio</div>
+        <div class="brand-subtitle">可视化数学实验室</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="graph">
+        <span class="nav-icon">📈</span>
+        <span class="nav-label">2D函数图像</span>
+      </button>
+      <button class="nav-item" data-tab="curve3d">
+        <span class="nav-icon">🌀</span>
+        <span class="nav-label">3D参数曲线</span>
+      </button>
+      <button class="nav-item" data-tab="vector">
+        <span class="nav-icon">➡️</span>
+        <span class="nav-label">向量运算</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>v2.0</span>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 顶部标题栏 -->
+    <header class="topbar">
+      <h1 id="pageTitle">2D函数图像</h1>
+      <p class="page-subtitle">绘制并探索函数曲线</p>
+    </header>
+
+    <!-- ========== GRAPH PANEL ========== -->
+    <div class="panel active" id="panel-graph">
+      <div class="workspace">
+        <section class="control-panel">
+          <div class="section-title">
+            <span class="section-dot" style="background:#6366f1"></span>
+            函数定义
+          </div>
+          <div id="funcRows">
+            <div class="func-row" data-func="0">
+              <label>f(x)=</label>
+              <input type="text" class="func-input" value="sin(x)" placeholder="输入函数...">
+              <input type="color" class="color-picker" value="#0078D4">
+              <button class="btn btn-icon btn-outline add-func" title="添加函数">+</button>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:24px">
+            <span class="section-dot" style="background:#06b6d4"></span>
+            视图范围
+          </div>
+          <div class="range-grid">
+            <div class="range-field">
+              <label>X 最小</label>
+              <input type="number" class="range-min" value="-10" step="1">
+            </div>
+            <div class="range-field">
+              <label>X 最大</label>
+              <input type="number" class="range-max" value="10" step="1">
+            </div>
+            <div class="range-field">
+              <label>Y 最小</label>
+              <input type="number" class="range-ymin" value="-7" step="1">
+            </div>
+            <div class="range-field">
+              <label>Y 最大</label>
+              <input type="number" class="range-ymax" value="7" step="1">
+            </div>
+          </div>
+          <div class="control-actions">
+            <button class="btn btn-primary" id="autoRange">自动适配</button>
+            <button class="btn btn-outline" id="resetView">重置视图</button>
+          </div>
+        </section>
+
+        <section class="visual-panel">
+          <div class="graph-wrapper">
+            <canvas id="graphCanvas"></canvas>
+            <div class="graph-coords" id="graphCoords">(0.00, 0.00)</div>
+            <div class="graph-legend" id="graphLegend"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ========== 3D CURVE PANEL ========== -->
+    <div class="panel" id="panel-curve3d">
+      <div class="workspace">
+        <section class="control-panel">
+          <div class="section-title">
+            <span class="section-dot" style="background:#8b5cf6"></span>
+            预设曲线
+          </div>
+          <div class="preset-grid">
+            <button class="preset-chip active" data-preset="helix">螺旋线</button>
+            <button class="preset-chip" data-preset="trefoil">三叶结</button>
+            <button class="preset-chip" data-preset="lissajous">利萨如</button>
+            <button class="preset-chip" data-preset="sphere">球面螺线</button>
+          </div>
+
+          <div class="section-title" style="margin-top:24px">
+            <span class="section-dot" style="background:#f59e0b"></span>
+            参数方程
+          </div>
+          <div class="param-fields">
+            <div class="param-field">
+              <label>x(t) =</label>
+              <input type="text" id="curveX" value="cos(t)">
+            </div>
+            <div class="param-field">
+              <label>y(t) =</label>
+              <input type="text" id="curveY" value="sin(t)">
+            </div>
+            <div class="param-field">
+              <label>z(t) =</label>
+              <input type="text" id="curveZ" value="t/10">
+            </div>
+          </div>
+
+          <div class="range-grid two-col">
+            <div class="range-field">
+              <label>t 起始</label>
+              <input type="number" id="curveTMin" value="0" step="any">
+            </div>
+            <div class="range-field">
+              <label>t 结束</label>
+              <input type="number" id="curveTMax" value="62.8" step="any">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="curveDraw" style="width:100%;margin-top:16px">绘制曲线</button>
+        </section>
+
+        <section class="visual-panel">
+          <div class="viewer3d-wrapper">
+            <canvas id="curveCanvas"></canvas>
+            <div class="viewer3d-info" id="curveInfo">拖拽旋转 · 滚轮缩放</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ========== VECTOR PANEL ========== -->
+    <div class="panel" id="panel-vector">
+      <div class="workspace">
+        <section class="control-panel">
+          <div class="section-title">
+            <span class="section-dot" style="background:#3b82f6"></span>
+            向量 A
+          </div>
+          <div class="vector-coords-row">
+            <div class="vector-coord-input">
+              <label>x</label>
+              <input type="number" id="vecAx" value="3" step="any">
+            </div>
+            <div class="vector-coord-input">
+              <label>y</label>
+              <input type="number" id="vecAy" value="2" step="any">
+            </div>
+            <div class="vector-coord-input">
+              <label>z</label>
+              <input type="number" id="vecAz" value="1" step="any">
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:24px">
+            <span class="section-dot" style="background:#ef4444"></span>
+            向量 B
+          </div>
+          <div class="vector-coords-row">
+            <div class="vector-coord-input">
+              <label>x</label>
+              <input type="number" id="vecBx" value="1" step="any">
+            </div>
+            <div class="vector-coord-input">
+              <label>y</label>
+              <input type="number" id="vecBy" value="3" step="any">
+            </div>
+            <div class="vector-coord-input">
+              <label>z</label>
+              <input type="number" id="vecBz" value="2" step="any">
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:24px">
+            <span class="section-dot" style="background:#10b981"></span>
+            运算
+          </div>
+          <div class="op-grid">
+            <button class="op-chip active" data-vop="both">A + B</button>
+            <button class="op-chip" data-vop="sub">A − B</button>
+            <button class="op-chip" data-vop="dot">A · B</button>
+            <button class="op-chip" data-vop="cross">A × B</button>
+          </div>
+
+          <div class="vector-result" id="vectorResult"></div>
+        </section>
+
+        <section class="visual-panel">
+          <div class="viewer3d-wrapper">
+            <canvas id="vectorCanvas"></canvas>
+            <div class="viewer3d-info" id="vectorInfo">拖拽旋转 · 滚轮缩放</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+//  MATH PARSER with implicit multiplication
+// ============================================================
+function insertImplicitMul(s) {
+  const fnNames = ['sinh','cosh','tanh','asin','acos','atan','sqrt','cbrt','abs','exp','ceil','floor','round','sin','cos','tan','log','ln'];
+  // sinx → sin(x) implicit function call
+  const fnPattern = fnNames.join('|');
+  s = s.replace(new RegExp('(^|[^a-zA-Z])(' + fnPattern + ')([a-zA-Z0-9])', 'g'), '$1$2($3)');
+  // implicit multiplication for ) cases (before function protection)
+  s = s.replace(/\)\s*\(/g, ')*(');
+  s = s.replace(/\)\s*(?=[a-zA-Z])/g, ')*');
+  s = s.replace(/\)\s*(?=\d)/g, ')*');
+  s = s.replace(/(\d)\s*(?=[a-zA-Z])/g, '$1*');
+  // protect function names with markers: \x00 + [\x01-\x1F] + \x00
+  const map = {};
+  let counter = 1;
+  fnNames.forEach(fn => {
+    const re = new RegExp('(' + fn + ')(?=\\s*\\()', 'g');
+    s = s.replace(re, m => {
+      const key = '\x00' + String.fromCharCode(counter++) + '\x00';
+      map[key] = m;
+      return key;
+    });
+  });
+  // implicit multiplication after protection
+  // letter/digit followed by marker-start (\x00) → insert *
+  s = s.replace(/([a-zA-Z0-9])\s*\x00/g, '$1*\x00');
+  // ) followed by marker-start (\x00) → insert *
+  s = s.replace(/\)\s*\x00/g, ')*\x00');
+  // letter-to-( : marker chars not in [a-zA-Z], so won't match marker followed by (
+  s = s.replace(/([a-zA-Z])\s*\(/g, '$1*(');
+  // letter-to-letter (but not within markers since marker IDs are \x01-\x1F)
+  s = s.replace(/([a-zA-Z])\s*(?=[a-zA-Z])/g, '$1*');
+  // restore markers
+  Object.keys(map).forEach(k => { s = s.replace(k, map[k]); });
+  return s;
+}
+
+function parseAndEval(expr, x) {
+  let s = insertImplicitMul(expr);
+  s = s
+    .replace(/\^/g, '**')
+    .replace(/π/g, '(' + Math.PI + ')')
+    .replace(/pi/g, '(' + Math.PI + ')')
+    .replace(/\be\b(?!\s*\()/g, '(' + Math.E + ')')
+    .replace(/sinh/g, 'Math.sinh')
+    .replace(/cosh/g, 'Math.cosh')
+    .replace(/tanh/g, 'Math.tanh')
+    .replace(/asin/g, 'Math.asin')
+    .replace(/acos/g, 'Math.acos')
+    .replace(/atan/g, 'Math.atan')
+    .replace(/sin/g, 'Math.sin')
+    .replace(/cos/g, 'Math.cos')
+    .replace(/tan/g, 'Math.tan')
+    .replace(/log/g, 'Math.log10')
+    .replace(/ln/g, 'Math.log')
+    .replace(/sqrt/g, 'Math.sqrt')
+    .replace(/cbrt/g, 'Math.cbrt')
+    .replace(/abs/g, 'Math.abs')
+    .replace(/floor/g, 'Math.floor')
+    .replace(/ceil/g, 'Math.ceil')
+    .replace(/round/g, 'Math.round')
+    .replace(/exp/g, 'Math.exp');
+  try {
+    const fn = new Function('x', 'return ' + s);
+    return fn(x);
+  } catch(e) { return NaN; }
+}
+
+// ============================================================
+//  GRAPHING ENGINE
+// ============================================================
+const canvas = document.getElementById('graphCanvas');
+const ctx = canvas.getContext('2d');
+const coordsEl = document.getElementById('graphCoords');
+const legendEl = document.getElementById('graphLegend');
+
+// Offscreen cache for base graph (grid, axes, curves, special points)
+const baseCanvas = document.createElement('canvas');
+const baseCtx = baseCanvas.getContext('2d');
+let graphDirty = true;
+
+let funcs = [];
+let xMin = -10, xMax = 10;
+let yMin = -7, yMax = 7;
+let isDragging = false, dragStartX, dragStartY;
+let mouseX = 0, mouseY = 0, snapPoint = null;
+let plottedPoints = [], specialPoints = [];
+
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width * 2, h = 420 * 2;
+  canvas.width = w; canvas.height = h;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '420px';
+  baseCanvas.width = w; baseCanvas.height = h;
+  graphDirty = true;
+  drawGraph();
+}
+
+function toCanvasX(x) { return ((x - xMin) / (xMax - xMin)) * canvas.width; }
+function toCanvasY(y) { return canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height; }
+function toMathX(cx) { return (cx / canvas.width) * (xMax - xMin) + xMin; }
+function toMathY(cy) { return yMax - (cy / canvas.height) * (yMax - yMin); }
+
+function drawGraph(fast) {
+  drawBaseGraph(fast);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(baseCanvas, 0, 0);
+  drawSnapOverlay();
+  updateLegend();
+}
+
+function redrawOverlay() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(baseCanvas, 0, 0);
+  drawSnapOverlay();
+}
+
+let pendingFullDraw = false;
+function scheduleFullDraw() {
+  if (pendingFullDraw) return;
+  pendingFullDraw = true;
+  requestAnimationFrame(() => {
+    pendingFullDraw = false;
+    drawGraph(false);
+    syncRangeInputs();
+  });
+}
+
+function drawBaseGraph(fast) {
+  const ctx = baseCtx;
+  const w = baseCanvas.width, h = baseCanvas.height;
+  baseCtx.clearRect(0, 0, w, h);
+  specialPoints = [];
+  plottedPoints = [];
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.strokeStyle = '#F0F0F5';
+  ctx.lineWidth = 1;
+  const xStep = niceStep(xMax - xMin);
+  const yStep = niceStep(yMax - yMin);
+  const xStart = Math.floor(xMin / xStep) * xStep;
+  const yStart = Math.floor(yMin / yStep) * yStep;
+
+  for (let x = xStart; x <= xMax + xStep; x += xStep) {
+    if (Math.abs(x) < xStep * 0.01) continue;
+    const cx = toCanvasX(x);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+  }
+  for (let y = yStart; y <= yMax + yStep; y += yStep) {
+    if (Math.abs(y) < yStep * 0.01) continue;
+    const cy = toCanvasY(y);
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+  }
+
+  // Axes
+  const originX = toCanvasX(0), originY = toCanvasY(0);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, h); ctx.stroke();
+
+  // Axis arrows
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.moveTo(w - 8, originY); ctx.lineTo(w - 2, originY); ctx.lineTo(w - 5, originY - 5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(w - 8, originY); ctx.lineTo(w - 2, originY); ctx.lineTo(w - 5, originY + 5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(originX, 8); ctx.lineTo(originX, 2); ctx.lineTo(originX - 5, 5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(originX, 8); ctx.lineTo(originX, 2); ctx.lineTo(originX + 5, 5); ctx.fill();
+
+  // Axis labels
+  ctx.fillStyle = '#666';
+  ctx.font = '38px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('x', w - 26, originY + 10);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('y', originX, 10);
+  ctx.textBaseline = 'top';
+
+  ctx.font = '34px sans-serif';
+  ctx.fillStyle = '#888';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let x = xStart; x <= xMax + xStep; x += xStep) {
+    if (Math.abs(x) < xStep * 0.01) continue;
+    const cx = toCanvasX(x);
+    ctx.fillText(formatNum(x), cx, originY + 10);
+  }
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let y = yStart; y <= yMax + yStep; y += yStep) {
+    if (Math.abs(y) < yStep * 0.01) continue;
+    const cy = toCanvasY(y);
+    ctx.fillText(formatNum(y), originX - 10, cy);
+  }
+
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#888';
+  ctx.font = '34px sans-serif';
+  ctx.fillText('O', originX - 10, originY + 10);
+
+  // Plot functions and collect points for snapping
+  const colors = ['#0078D4','#E8453C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#3498DB'];
+  const legendItems = [];
+  const allFuncData = [];
+
+  funcs.forEach((f, idx) => {
+    if (!f.expr.trim()) return;
+    const color = f.color || colors[idx % colors.length];
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    let started = false;
+    const steps = fast ? Math.min(300, Math.floor(w * 0.3)) : Math.max(300, Math.floor(w * 0.8));
+    let prevY = NaN, prevX = NaN;
+    const pts = [];
+
+    for (let i = 0; i <= steps; i++) {
+      const x = xMin + (i / steps) * (xMax - xMin);
+      const y = parseAndEval(f.expr, x);
+      if (isNaN(y) || !isFinite(y)) { started = false; prevY = NaN; prevX = NaN; continue; }
+      if (y < yMin - 5 || y > yMax + 5) { started = false; prevY = NaN; prevX = NaN; continue; }
+      const cx = toCanvasX(x), cy = toCanvasY(y);
+      pts.push({ mx: cx, my: cy, x, y, color, expr: f.expr, funcIdx: idx });
+      if (!fast) {
+        if (!isNaN(prevY) && prevY * y < 0) {
+          const t = prevY / (prevY - y);
+          const rx = prevX + t * (x - prevX);
+          const ry = 0;
+          if (rx >= xMin && rx <= xMax) {
+            specialPoints.push({ mx: toCanvasX(rx), my: toCanvasY(ry), x: rx, y: ry, color, expr: f.expr, type: 'root', label: '零点' });
+          }
+        }
+      }
+      if (!started) { ctx.moveTo(cx, cy); started = true; }
+      else {
+        if (!isNaN(prevY) && Math.abs(y - prevY) > (yMax - yMin) * 0.5) {
+          ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx, cy);
+        } else {
+          ctx.lineTo(cx, cy);
+        }
+      }
+      prevY = y; prevX = x;
+    }
+    ctx.stroke();
+
+    if (!fast) {
+      if (xMin <= 0 && 0 <= xMax) {
+        const y0 = parseAndEval(f.expr, 0);
+        if (isFinite(y0) && !isNaN(y0) && y0 >= yMin && y0 <= yMax) {
+          specialPoints.push({ mx: toCanvasX(0), my: toCanvasY(y0), x: 0, y: y0, color, expr: f.expr, type: 'yintercept', label: '截距' });
+        }
+      }
+
+      const h = (xMax - xMin) / steps * 2;
+      for (let i = 2; i < pts.length - 2; i++) {
+        const p = pts[i];
+        const y1 = parseAndEval(f.expr, p.x - h);
+        const y2 = parseAndEval(f.expr, p.x + h);
+        if (!isFinite(y1) || !isFinite(y2)) continue;
+        const deriv = (y2 - y1) / (2 * h);
+        if (i > 2) {
+          const prevP = pts[i-1];
+          const prevDeriv = (pts[i-1].y - pts[i-3].y) / (pts[i-1].x - pts[i-3].x);
+          if (prevDeriv * deriv < 0 && Math.abs(deriv) > 0.001) {
+            const type = deriv > 0 ? 'min' : 'max';
+            const label = type === 'max' ? '极大值' : '极小值';
+            const exactX = findZero(f.expr, prevP.x, p.x, true);
+            if (exactX !== null) {
+              const exactY = parseAndEval(f.expr, exactX);
+              if (isFinite(exactY) && exactX >= xMin && exactX <= xMax && exactY >= yMin && exactY <= yMax) {
+                specialPoints.push({ mx: toCanvasX(exactX), my: toCanvasY(exactY), x: exactX, y: exactY, color, expr: f.expr, type, label });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    plottedPoints.push(pts);
+    allFuncData.push({ expr: f.expr, color, pts });
+    legendItems.push({ color, expr: f.expr });
+  });
+
+  if (!fast) {
+    const xTol = (xMax - xMin) * 0.008;
+    const yTol = (yMax - yMin) * 0.008;
+    specialPoints = specialPoints.filter((p, i) => {
+      for (let j = 0; j < i; j++) {
+        if (Math.abs(p.x - specialPoints[j].x) < xTol && Math.abs(p.y - specialPoints[j].y) < yTol) return false;
+      }
+      return true;
+    });
+
+    specialPoints = specialPoints.filter(p => {
+      return p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax;
+    });
+  }
+
+  if (!fast) {
+    specialPoints.forEach(sp => {
+      ctx.save();
+      const isIntersection = sp.type === 'intersection';
+      const size = isIntersection ? 9 : (sp.type === 'max' || sp.type === 'min') ? 8 : 7;
+      ctx.shadowColor = sp.color || '#333';
+      ctx.shadowBlur = isIntersection ? 10 : 8;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = isIntersection ? 3 : 2.5;
+      ctx.beginPath();
+      if (sp.type === 'root') {
+        ctx.arc(sp.mx, sp.my, size, 0, Math.PI * 2);
+      } else if (sp.type === 'max' || sp.type === 'min') {
+        ctx.moveTo(sp.mx, sp.my - size);
+        ctx.lineTo(sp.mx + size, sp.my);
+        ctx.lineTo(sp.mx, sp.my + size);
+        ctx.lineTo(sp.mx - size, sp.my);
+        ctx.closePath();
+      } else if (sp.type === 'yintercept') {
+        ctx.rect(sp.mx - size * 0.7, sp.my - size * 0.7, size * 1.4, size * 1.4);
+      } else {
+        ctx.arc(sp.mx, sp.my, size, 0, Math.PI * 2);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = sp.color || '#333';
+      ctx.beginPath();
+      if (sp.type === 'root') {
+        ctx.arc(sp.mx, sp.my, size - 2.5, 0, Math.PI * 2);
+      } else if (sp.type === 'max' || sp.type === 'min') {
+        ctx.moveTo(sp.mx, sp.my - size + 2);
+        ctx.lineTo(sp.mx + size - 2, sp.my);
+        ctx.lineTo(sp.mx, sp.my + size - 2);
+        ctx.lineTo(sp.mx - size + 2, sp.my);
+        ctx.closePath();
+      } else if (sp.type === 'yintercept') {
+        ctx.rect(sp.mx - size * 0.5 + 1, sp.my - size * 0.5 + 1, size - 2, size - 2);
+      } else {
+        ctx.arc(sp.mx, sp.my, size - 3, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      if (isIntersection) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        const cross = size - 4;
+        ctx.beginPath();
+        ctx.moveTo(sp.mx - cross * 0.6, sp.my - cross * 0.6);
+        ctx.lineTo(sp.mx + cross * 0.6, sp.my + cross * 0.6);
+        ctx.moveTo(sp.mx + cross * 0.6, sp.my - cross * 0.6);
+        ctx.lineTo(sp.mx - cross * 0.6, sp.my + cross * 0.6);
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+  }
+
+  updateLegendItems(legendItems);
+}
+
+function drawSnapOverlay() {
+  if (!snapPoint) return;
+  const w = canvas.width, h = canvas.height;
+  const { mx, my, x, y, type, label } = snapPoint;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(0, my); ctx.lineTo(w, my); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mx, 0); ctx.lineTo(mx, h); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#E8453C';
+  ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(mx, my, 2.5, 0, Math.PI * 2); ctx.fill();
+  const labelText = type ? `${label} (${formatNum(x)}, ${formatNum(y)})` : `(${formatNum(x)}, ${formatNum(y)})`;
+  ctx.font = '28px Consolas, monospace';
+  const tw = ctx.measureText(labelText).width;
+  const lx = Math.min(mx + 14, w - tw - 10);
+  const ly = my - 16;
+  const bh = 36;
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  const r = 6;
+  ctx.beginPath();
+  ctx.moveTo(lx + r, ly); ctx.lineTo(lx + tw + r, ly);
+  ctx.arcTo(lx + tw + r * 2, ly, lx + tw + r * 2, ly + r, r);
+  ctx.lineTo(lx + tw + r * 2, ly + bh); ctx.arcTo(lx + tw + r * 2, ly + bh + r, lx + tw + r, ly + bh + r, r);
+  ctx.lineTo(lx + r, ly + bh + r); ctx.arcTo(lx, ly + bh + r, lx, ly + bh, r);
+  ctx.lineTo(lx, ly + r); ctx.arcTo(lx, ly, lx + r, ly, r);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  if (type) {
+    ctx.font = '22px sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText(label, lx + 8, ly + 10);
+    ctx.fillStyle = '#fff';
+    ctx.font = '22px Consolas, monospace';
+    ctx.fillText(`(${formatNum(x)}, ${formatNum(y)})`, lx + 8, ly + 28);
+  } else {
+    ctx.font = '26px Consolas, monospace';
+    ctx.fillText(labelText, lx + 8, ly + 18);
+  }
+  ctx.restore();
+}
+
+let cachedLegendItems = [];
+function updateLegendItems(items) { cachedLegendItems = items; }
+function updateLegend() {
+  legendEl.innerHTML = cachedLegendItems.map(li =>
+    `<div class="legend-item"><div class="legend-line" style="background:${li.color}"></div><span class="legend-text">f(x)=${li.expr}</span></div>`
+  ).join('');
+}
+
+function niceStep(range) {
+  const rough = range / 8;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  let step;
+  if (norm < 1.5) step = 1;
+  else if (norm < 3.5) step = 2;
+  else if (norm < 7.5) step = 5;
+  else step = 10;
+  return step * mag;
+}
+
+function formatNum(n) {
+  if (Math.abs(n) < 1e-10) return '0';
+  if (Number.isInteger(n)) return n.toString();
+  return parseFloat(n.toFixed(4)).toString();
+}
+
+// Find zero of a function between x1 and x2 (bisection or derivative root)
+function findZero(expr, x1, x2, isDerivative) {
+  const f = x => parseAndEval(expr, x);
+  let a = x1, b = x2;
+  let fa, fb;
+  if (isDerivative) {
+    const h = (xMax - xMin) / 1000;
+    const deriv = x => (parseAndEval(expr, x + h) - parseAndEval(expr, x - h)) / (2 * h);
+    fa = deriv(a); fb = deriv(b);
+  } else {
+    fa = f(a); fb = f(b);
+  }
+  if (fa * fb > 0) return null;
+  for (let i = 0; i < 30; i++) {
+    const m = (a + b) / 2;
+    const fm = isDerivative
+      ? (parseAndEval(expr, m + (xMax-xMin)/1000) - parseAndEval(expr, m - (xMax-xMin)/1000)) / (2 * (xMax-xMin)/1000)
+      : f(m);
+    if (Math.abs(fm) < 1e-8) return m;
+    if (fa * fm <= 0) { b = m; fb = fm; }
+    else { a = m; fa = fm; }
+  }
+  return (a + b) / 2;
+}
+
+// ============================================================
+//  GRAPH EVENT HANDLERS
+// ============================================================
+canvas.addEventListener('mouseleave', () => {
+  if (snapPoint) { snapPoint = null; redrawOverlay(); }
+  coordsEl.textContent = '(0.00, 0.00)';
+});
+canvas.addEventListener('mousedown', e => {
+  isDragging = true;
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+  dragStartX = (e.clientX - rect.left) * sx;
+  dragStartY = (e.clientY - rect.top) * sy;
+  mouseX = dragStartX;
+  mouseY = dragStartY;
+});
+window.addEventListener('mousemove', e => {
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  if (mx >= 0 && mx <= rect.width && my >= 0 && my <= rect.height) {
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mathX = toMathX(mx * scaleX);
+    const mathY = toMathY(my * scaleY);
+    const cx = mx * scaleX, cy = my * scaleY;
+    // Snap to special points first (tighter threshold)
+    const threshold = 22 * scaleX;
+    const specialThreshold = 14 * scaleX;
+    let best = null, bestDist = Infinity;
+    // Check special points first
+    specialPoints.forEach(sp => {
+      const d = Math.hypot(sp.mx - cx, sp.my - cy);
+      if (d < specialThreshold && d < bestDist) { bestDist = d; best = { ...sp, isSpecial: true }; }
+    });
+    // Fall back to regular curve points
+    if (!best) {
+      plottedPoints.forEach(pts => {
+        for (const p of pts) {
+          const d = Math.hypot(p.mx - cx, p.my - cy);
+          if (d < bestDist) { bestDist = d; best = p; }
+        }
+      });
+    }
+    if (best && bestDist < threshold) {
+      const snapChanged = !snapPoint || snapPoint.x !== best.x || snapPoint.y !== best.y;
+      snapPoint = best;
+      if (best.isSpecial) {
+        coordsEl.textContent = `${best.label} (${formatNum(best.x)}, ${formatNum(best.y)})`;
+      } else {
+        coordsEl.textContent = `(${formatNum(best.x)}, ${formatNum(best.y)})  [snap]`;
+      }
+      if (snapChanged) redrawOverlay();
+    } else {
+      if (snapPoint) { snapPoint = null; redrawOverlay(); }
+      coordsEl.textContent = `(${formatNum(mathX)}, ${formatNum(mathY)})`;
+    }
+    mouseX = cx;
+    mouseY = cy;
+  }
+  if (isDragging) {
+    const rect = canvas.getBoundingClientRect();
+    const dx = (e.clientX - rect.left) * (canvas.width / rect.width) - dragStartX;
+    const dy = (e.clientY - rect.top) * (canvas.height / rect.height) - dragStartY;
+    const xRange = xMax - xMin;
+    const yRange = yMax - yMin;
+    xMin -= (dx / canvas.width) * xRange;
+    xMax -= (dx / canvas.width) * xRange;
+    yMin += (dy / canvas.height) * yRange;
+    yMax += (dy / canvas.height) * yRange;
+    dragStartX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    dragStartY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    snapPoint = null;
+    drawGraph(true);
+  }
+});
+window.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    scheduleFullDraw();
+  }
+});
+let wheelTimer = null;
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const factor = e.deltaY > 0 ? 1.15 : 1 / 1.15;
+  const mathX = toMathX(mx), mathY = toMathY(my);
+  xMin = mathX - (mathX - xMin) * factor;
+  xMax = mathX + (xMax - mathX) * factor;
+  yMin = mathY - (mathY - yMin) * factor;
+  yMax = mathY + (yMax - mathY) * factor;
+  snapPoint = null;
+  drawGraph(true);
+  if (wheelTimer) clearTimeout(wheelTimer);
+  wheelTimer = setTimeout(() => scheduleFullDraw(), 80);
+}, { passive: false });
+
+// Touch support
+let touchStartDist = 0, touchCenter = null;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    dragStartX = (t.clientX - rect.left) * (canvas.width / rect.width);
+    dragStartY = (t.clientY - rect.top) * (canvas.height / rect.height);
+  } else if (e.touches.length === 2) {
+    const t1 = e.touches[0], t2 = e.touches[1];
+    const rect = canvas.getBoundingClientRect();
+    const s = canvas.width / rect.width;
+    touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    touchCenter = {
+      x: ((t1.clientX + t2.clientX) / 2 - rect.left) * s,
+      y: ((t1.clientY + t2.clientY) / 2 - rect.top) * s
+    };
+  }
+  e.preventDefault();
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    const s = canvas.width / rect.width;
+    const dx = (t.clientX - rect.left) * s - dragStartX;
+    const dy = (t.clientY - rect.top) * s - dragStartY;
+    const xRange = xMax - xMin, yRange = yMax - yMin;
+    xMin -= (dx / canvas.width) * xRange; xMax -= (dx / canvas.width) * xRange;
+    yMin += (dy / canvas.height) * yRange; yMax += (dy / canvas.height) * yRange;
+    const rect2 = canvas.getBoundingClientRect();
+    dragStartX = (t.clientX - rect2.left) * s; dragStartY = (t.clientY - rect2.top) * s;
+    drawGraph(true);
+  } else if (e.touches.length === 2 && touchCenter) {
+    const t1 = e.touches[0], t2 = e.touches[1];
+    const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const factor = touchStartDist / dist;
+    const mathX = toMathX(touchCenter.x), mathY = toMathY(touchCenter.y);
+    xMin = mathX - (mathX - xMin) * factor; xMax = mathX + (xMax - mathX) * factor;
+    yMin = mathY - (mathY - yMin) * factor; yMax = mathY + (yMax - mathY) * factor;
+    touchStartDist = dist;
+    drawGraph(true);
+  }
+}, { passive: false });
+canvas.addEventListener('touchend', (e) => {
+  if (e.touches.length === 0) { isDragging = false; touchCenter = null; scheduleFullDraw(); }
+  if (e.touches.length === 1) {
+    touchCenter = null;
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    dragStartX = (t.clientX - rect.left) * (canvas.width / rect.width);
+    dragStartY = (t.clientY - rect.top) * (canvas.height / rect.height);
+  }
+});
+canvas.addEventListener('touchcancel', () => { isDragging = false; touchCenter = null; scheduleFullDraw(); });
+
+function syncRangeInputs() {
+  document.querySelector('.range-min').value = parseFloat(xMin.toFixed(4));
+  document.querySelector('.range-max').value = parseFloat(xMax.toFixed(4));
+  document.querySelector('.range-ymin').value = parseFloat(yMin.toFixed(4));
+  document.querySelector('.range-ymax').value = parseFloat(yMax.toFixed(4));
+}
+
+// Function rows - use MutationObserver for robustness
+function reindexFuncRows() {
+  const rows = document.querySelectorAll('#funcRows > .func-row');
+  const newFuncs = [];
+  rows.forEach((row, i) => {
+    row.dataset.func = i;
+    const input = row.querySelector('.func-input');
+    const picker = row.querySelector('.color-picker');
+    newFuncs.push({ expr: input.value, color: picker.value });
+  });
+  funcs = newFuncs;
+  drawGraph();
+}
+
+document.getElementById('funcRows').addEventListener('input', e => {
+  if (e.target.classList.contains('func-input')) {
+    const row = e.target.closest('.func-row');
+    const idx = parseInt(row.dataset.func);
+    if (!isNaN(idx) && idx < funcs.length) {
+      funcs[idx].expr = e.target.value;
+      drawGraph();
+    }
+  }
+});
+
+document.getElementById('funcRows').addEventListener('change', e => {
+  if (e.target.classList.contains('color-picker')) {
+    const row = e.target.closest('.func-row');
+    const idx = parseInt(row.dataset.func);
+    if (!isNaN(idx) && idx < funcs.length) {
+      funcs[idx].color = e.target.value;
+      drawGraph();
+    }
+  }
+});
+
+document.getElementById('funcRows').addEventListener('click', e => {
+  if (e.target.classList.contains('add-func')) {
+    const colors = ['#0078D4','#E8453C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#3498DB'];
+    const idx = document.querySelectorAll('#funcRows > .func-row').length;
+    const div = document.createElement('div');
+    div.className = 'func-row';
+    div.dataset.func = idx;
+    div.innerHTML = `
+      <label>f(x)=</label>
+      <input type="text" class="func-input" value="x" placeholder="输入函数...">
+      <input type="color" class="color-picker" value="${colors[idx % colors.length]}">
+      <button class="btn btn-icon btn-outline remove-func" title="删除">✕</button>
+    `;
+    document.getElementById('funcRows').appendChild(div);
+    funcs.push({ expr: 'x', color: colors[idx % colors.length] });
+    drawGraph();
+    div.querySelector('.func-input').focus();
+  }
+  if (e.target.classList.contains('remove-func')) {
+    const rows = document.querySelectorAll('#funcRows > .func-row');
+    if (rows.length <= 1) return;
+    const row = e.target.closest('.func-row');
+    row.remove();
+    reindexFuncRows();
+  }
+});
+
+// Range inputs
+document.querySelector('.range-min').addEventListener('change', e => {
+  xMin = parseFloat(e.target.value) || -10;
+  snapPoint = null;
+  drawGraph();
+});
+document.querySelector('.range-max').addEventListener('change', e => {
+  xMax = parseFloat(e.target.value) || 10;
+  snapPoint = null;
+  drawGraph();
+});
+document.querySelector('.range-ymin').addEventListener('change', e => {
+  yMin = parseFloat(e.target.value) || -7;
+  snapPoint = null;
+  drawGraph();
+});
+document.querySelector('.range-ymax').addEventListener('change', e => {
+  yMax = parseFloat(e.target.value) || 7;
+  snapPoint = null;
+  drawGraph();
+});
+document.getElementById('autoRange').addEventListener('click', () => {
+  autoFitYRange();
+  syncRangeInputs();
+  snapPoint = null;
+  drawGraph();
+});
+document.getElementById('resetView').addEventListener('click', () => {
+  xMin = -10; xMax = 10; yMin = -7; yMax = 7;
+  snapPoint = null;
+  syncRangeInputs();
+  drawGraph();
+});
+
+function autoFitYRange() {
+  let yLo = Infinity, yHi = -Infinity;
+  const steps = 500;
+  const values = [];
+  funcs.forEach(f => {
+    if (!f.expr.trim()) return;
+    for (let i = 0; i <= steps; i++) {
+      const x = xMin + (i / steps) * (xMax - xMin);
+      const y = parseAndEval(f.expr, x);
+      if (isFinite(y) && !isNaN(y)) values.push(y);
+    }
+  });
+  if (values.length > 10) {
+    values.sort((a, b) => a - b);
+    const loIdx = Math.floor(values.length * 0.02);
+    const hiIdx = Math.floor(values.length * 0.98);
+    yLo = values[loIdx]; yHi = values[hiIdx];
+    const pad = (yHi - yLo) * 0.15 || 1;
+    yMin = yLo - pad; yMax = yHi + pad;
+  } else { yMin = -7; yMax = 7; }
+}
+
+// ============================================================
+//  SIDEBAR NAVIGATION
+// ============================================================
+const navItems = document.querySelectorAll('.nav-item');
+const pageTitle = document.getElementById('pageTitle');
+const pageSubtitle = document.querySelector('.page-subtitle');
+const pageInfo = {
+  graph: { title: '2D函数图像', subtitle: '绘制并探索函数曲线' },
+  curve3d: { title: '3D参数曲线', subtitle: '空间中的参数方程可视化' },
+  vector: { title: '向量运算', subtitle: '三维向量的加法、点积与叉积' }
+};
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const tab = item.dataset.tab;
+    navItems.forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+
+    if (pageInfo[tab]) {
+      pageTitle.textContent = pageInfo[tab].title;
+      pageSubtitle.textContent = pageInfo[tab].subtitle;
+    }
+
+    if (tab === 'graph') setTimeout(resizeCanvas, 50);
+    if (tab === 'curve3d') setTimeout(() => {
+      if (window.drawCurve3D) { if (!window.curveScene) window.drawCurve3D(); else window.curveScene.onResize(); }
+    }, 200);
+    if (tab === 'vector') setTimeout(() => {
+      if (window.drawVectors) { if (!window.vectorScene) window.drawVectors(); else window.vectorScene.onResize(); }
+    }, 200);
+  });
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+reindexFuncRows();
+autoFitYRange();
+syncRangeInputs();
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 100);
+</script>
+
+<script type="module">
+// ============================================================
+//  3D MATH TOOLS (Three.js)
+// ============================================================
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// Expose THREE globally so any legacy code can access it
+window.THREE = THREE;
+// OrbitControls is imported directly and used in module scope (THREE namespace is non-extensible)
+window.OrbitControls = OrbitControls;
+
+// ---- 3D parametric curve parser ----
+function parseAndEvalT(expr, t) {
+  let s = insertImplicitMul(expr);
+  s = s.replace(/\^/g, '**')
+    .replace(/π/g, '(' + Math.PI + ')').replace(/pi/g, '(' + Math.PI + ')')
+    .replace(/\be\b(?!\s*\()/g, '(' + Math.E + ')')
+    .replace(/sinh/g,'Math.sinh').replace(/cosh/g,'Math.cosh').replace(/tanh/g,'Math.tanh')
+    .replace(/asin/g,'Math.asin').replace(/acos/g,'Math.acos').replace(/atan/g,'Math.atan')
+    .replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+    .replace(/log/g,'Math.log10').replace(/ln/g,'Math.log')
+    .replace(/sqrt/g,'Math.sqrt').replace(/cbrt/g,'Math.cbrt').replace(/abs/g,'Math.abs')
+    .replace(/floor/g,'Math.floor').replace(/ceil/g,'Math.ceil').replace(/round/g,'Math.round')
+    .replace(/exp/g,'Math.exp');
+  try { const fn = new Function('t','return '+s); return fn(t); } catch(e) { return NaN; }
+}
+
+// ---- generic 3D scene factory ----
+function createScene3D(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  // canvas may be in a just-shown panel with 0 dimensions; use parent or default
+  let w = canvas.clientWidth, h = canvas.clientHeight;
+  if (w === 0 || h === 0) {
+    const parent = canvas.parentElement;
+    w = parent ? parent.clientWidth : 800;
+    h = 480;
+  }
+  renderer.setSize(w, h, false);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1C1B1F);
+
+  const camera = new THREE.PerspectiveCamera(50, w/h, 0.1, 1000);
+  camera.position.set(8, 8, 8);
+  camera.lookAt(0, 0, 0);
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.1;
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0x404060, 0.6));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(10, 15, 10);
+  scene.add(dirLight);
+
+  // Axes (X=red, Y=green, Z=blue)
+  const axesGroup = new THREE.Group();
+  const axisLen = 6;
+  const xAxis = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), axisLen, 0xE8453C, 0.3, 0.2);
+  const yAxis = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), axisLen, 0x2ECC71, 0.3, 0.2);
+  const zAxis = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), axisLen, 0x0078D4, 0.3, 0.2);
+  axesGroup.add(xAxis, yAxis, zAxis);
+  scene.add(axesGroup);
+
+  // Grid on XY plane
+  const grid = new THREE.GridHelper(10, 10, 0x444466, 0x333355);
+  grid.rotation.x = Math.PI / 2;
+  scene.add(grid);
+
+  let animationId = null;
+  function animate() {
+    animationId = requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  function onResize() {
+    let nw = canvas.clientWidth, nh = canvas.clientHeight;
+    if (nw === 0 || nh === 0) {
+      const parent = canvas.parentElement;
+      nw = parent ? parent.clientWidth : 800;
+      nh = 480;
+    }
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh, false);
+  }
+  window.addEventListener('resize', onResize);
+  // Delay a resize to catch the moment the panel becomes visible
+  setTimeout(onResize, 300);
+
+  return {
+    renderer, scene, camera, controls, canvas, axesGroup, grid, onResize,
+    stop: () => { if (animationId) cancelAnimationFrame(animationId); },
+    clear: () => {
+      const toRemove = scene.children.filter(c => c !== axesGroup && c !== grid);
+      toRemove.forEach(c => {
+        scene.remove(c);
+        if (c.geometry) c.geometry.dispose();
+        if (c.material) {
+          if (Array.isArray(c.material)) c.material.forEach(m=>m.dispose());
+          else c.material.dispose();
+        }
+      });
+    }
+  };
+}
+
+// ---- 3D Curve ----
+let curveScene = null;
+const curvePresets = {
+  helix: { x: 'cos(t)', y: 'sin(t)', z: 't/10', tMin: 0, tMax: 62.8 },
+  trefoil: { x: 'sin(t)+2*sin(2*t)', y: 'cos(t)-2*cos(2*t)', z: '-sin(3*t)', tMin: 0, tMax: 6.28 },
+  lissajous: { x: 'sin(3*t)', y: 'sin(2*t+0.5)', z: 'sin(t+1)', tMin: 0, tMax: 6.28 },
+  sphere: { x: 'cos(t)*sin(t/8)', y: 'sin(t)*sin(t/8)', z: 'cos(t/8)', tMin: 0, tMax: 50.27 }
+};
+
+function drawCurve3D() {
+  if (!curveScene) curveScene = createScene3D('curveCanvas');
+  curveScene.clear();
+
+  const exprX = document.getElementById('curveX').value;
+  const exprY = document.getElementById('curveY').value;
+  const exprZ = document.getElementById('curveZ').value;
+  const tMin = parseFloat(document.getElementById('curveTMin').value);
+  const tMax = parseFloat(document.getElementById('curveTMax').value);
+  const steps = 1000;
+
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = tMin + (i/steps) * (tMax - tMin);
+    const x = parseAndEvalT(exprX, t);
+    const y = parseAndEvalT(exprY, t);
+    const z = parseAndEvalT(exprZ, t);
+    if (isFinite(x) && isFinite(y) && isFinite(z)) {
+      points.push(new THREE.Vector3(x, y, z));
+    }
+  }
+  if (points.length < 2) { document.getElementById('curveInfo').textContent = '无法计算表达式'; return; }
+
+  const curve = new THREE.CatmullRomCurve3(points);
+  const tubeGeo = new THREE.TubeGeometry(curve, points.length, 0.08, 8, false);
+  const tubeMat = new THREE.MeshPhongMaterial({ color: 0x00BCF2, emissive: 0x003355, shininess: 80 });
+  const tube = new THREE.Mesh(tubeGeo, tubeMat);
+  curveScene.scene.add(tube);
+
+  document.getElementById('curveInfo').textContent = `${points.length} 个点 · 拖拽旋转 · 滚轮缩放`;
+}
+
+// ---- Vector visualization ----
+let vectorScene = null;
+let currentVecOp = 'both';
+
+function drawVectors() {
+  if (!vectorScene) vectorScene = createScene3D('vectorCanvas');
+  vectorScene.clear();
+
+  const ax = parseFloat(document.getElementById('vecAx').value) || 0;
+  const ay = parseFloat(document.getElementById('vecAy').value) || 0;
+  const az = parseFloat(document.getElementById('vecAz').value) || 0;
+  const bx = parseFloat(document.getElementById('vecBx').value) || 0;
+  const by = parseFloat(document.getElementById('vecBy').value) || 0;
+  const bz = parseFloat(document.getElementById('vecBz').value) || 0;
+
+  const A = new THREE.Vector3(ax, ay, az);
+  const B = new THREE.Vector3(bx, by, bz);
+
+  // Vector A (blue)
+  if (A.length() > 0.001) {
+    const arrowA = new THREE.ArrowHelper(A.clone().normalize(), new THREE.Vector3(0,0,0), A.length(), 0x0078D4, 0.3, 0.15);
+    vectorScene.scene.add(arrowA);
+  }
+  // Vector B (red)
+  if (B.length() > 0.001) {
+    const arrowB = new THREE.ArrowHelper(B.clone().normalize(), new THREE.Vector3(0,0,0), B.length(), 0xE8453C, 0.3, 0.15);
+    vectorScene.scene.add(arrowB);
+  }
+
+  let resultText = '';
+
+  if (currentVecOp === 'both' || currentVecOp === 'sub') {
+    const sign = currentVecOp === 'sub' ? -1 : 1;
+    const C = new THREE.Vector3(ax + sign*bx, ay + sign*by, az + sign*bz);
+    const label = currentVecOp === 'sub' ? 'A - B' : 'A + B';
+    if (C.length() > 0.001) {
+      const arrowC = new THREE.ArrowHelper(C.clone().normalize(), new THREE.Vector3(0,0,0), C.length(), 0x2ECC71, 0.3, 0.15);
+      vectorScene.scene.add(arrowC);
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([
+        A.clone(), new THREE.Vector3(ax+sign*bx, ay+sign*by, az+sign*bz), B.clone()
+      ]);
+      const lineMat = new THREE.LineDashedMaterial({ color: 0x2ECC71, dashSize: 0.2, gapSize: 0.1, transparent: true, opacity: 0.5 });
+      const line = new THREE.Line(lineGeo, lineMat);
+      line.computeLineDistances();
+      vectorScene.scene.add(line);
+    }
+    resultText = `<span class="label">${label} =</span> <span class="value">(${C.x.toFixed(2)}, ${C.y.toFixed(2)}, ${C.z.toFixed(2)})</span><br>`;
+  }
+
+  if (currentVecOp === 'dot') {
+    const dot = A.dot(B);
+    resultText = `<span class="label">A · B =</span> <span class="value">${dot.toFixed(4)}</span><br>`;
+    resultText += `<span class="label">|A| =</span> <span class="value">${A.length().toFixed(4)}</span>, <span class="label">|B| =</span> <span class="value">${B.length().toFixed(4)}</span><br>`;
+    const cosAngle = dot / (A.length() * B.length());
+    if (isFinite(cosAngle)) {
+      const angle = Math.acos(Math.max(-1, Math.min(1, cosAngle))) * 180 / Math.PI;
+      resultText += `<span class="label">夹角 =</span> <span class="value">${angle.toFixed(2)}°</span>`;
+    }
+  }
+
+  if (currentVecOp === 'cross') {
+    const C = new THREE.Vector3().crossVectors(A, B);
+    if (C.length() > 0.001) {
+      const arrowC = new THREE.ArrowHelper(C.clone().normalize(), new THREE.Vector3(0,0,0), C.length(), 0x9B59B6, 0.3, 0.15);
+      vectorScene.scene.add(arrowC);
+    }
+    resultText = `<span class="label">A × B =</span> <span class="value">(${C.x.toFixed(2)}, ${C.y.toFixed(2)}, ${C.z.toFixed(2)})</span><br>`;
+    resultText += `<span class="label">|A × B| =</span> <span class="value">${C.length().toFixed(4)}</span>`;
+  }
+
+  document.getElementById('vectorResult').innerHTML = resultText || '<span class="label">请选择运算</span>';
+  document.getElementById('vectorInfo').textContent = `A=(${ax},${ay},${az}) B=(${bx},${by},${bz}) · 拖拽旋转`;
+}
+
+// ---- Expose to window so regular script's tab nav can call them ----
+window.drawCurve3D = drawCurve3D;
+window.drawVectors = drawVectors;
+Object.defineProperty(window, 'curveScene', { get: () => curveScene, configurable: true });
+Object.defineProperty(window, 'vectorScene', { get: () => vectorScene, configurable: true });
+
+// ---- Event bindings ----
+// Curve
+document.querySelectorAll('.preset-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const p = curvePresets[btn.dataset.preset];
+    document.getElementById('curveX').value = p.x;
+    document.getElementById('curveY').value = p.y;
+    document.getElementById('curveZ').value = p.z;
+    document.getElementById('curveTMin').value = p.tMin;
+    document.getElementById('curveTMax').value = p.tMax;
+    drawCurve3D();
+  });
+});
+document.getElementById('curveDraw').addEventListener('click', drawCurve3D);
+
+// Vector
+document.querySelectorAll('.op-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.op-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentVecOp = btn.dataset.vop;
+    drawVectors();
+  });
+});
+['vecAx','vecAy','vecAz','vecBx','vecBy','vecBz'].forEach(id => {
+  document.getElementById(id).addEventListener('input', drawVectors);
+});
+
+// Initial draw if a 3D panel is currently active on load
+const activeTab = document.querySelector('.nav-item.active');
+if (activeTab) {
+  if (activeTab.dataset.tab === 'curve3d') setTimeout(drawCurve3D, 100);
+  if (activeTab.dataset.tab === 'vector') setTimeout(drawVectors, 100);
+}
+</script>
+</body>
+</html>
