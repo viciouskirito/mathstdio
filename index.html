@@ -39,6 +39,18 @@
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
+  --radius-pill: 24px;
+
+  /* 间距系统 */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* 画布背景 */
+  --canvas-bg: #FFFFFF;
+  --viewer-bg: #1C1B1F;
 
   /* 阴影 Material */
   --shadow-1: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
@@ -73,6 +85,8 @@
   --graph-accent: #D0BCFF;
   --curve-accent: #EFB8C8;
   --vector-accent: #7FC5FF;
+  --canvas-bg: #1e1e2a;
+  --viewer-bg: #131216;
   --shadow-1: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
   --shadow-2: 0 3px 6px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
   --shadow-3: 0 6px 12px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2);
@@ -81,7 +95,7 @@
 
 [data-theme="dark"] .graph-wrapper,
 [data-theme="dark"] .graph-wrapper canvas {
-  background: #1e1e2a;
+  background: var(--canvas-bg);
 }
 [data-theme="dark"] .graph-legend {
   background: rgba(30, 30, 42, 0.94);
@@ -124,31 +138,32 @@ body {
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 12px 24px;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-sm) var(--space-lg);
 }
 
 .brand-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--md-sys-color-primary), #9b7fd4);
   color: var(--md-sys-color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 12px rgba(103,80,164,0.3);
+  flex-shrink: 0;
 }
-.brand-icon svg { width: 26px; height: 26px; }
+.brand-icon svg { width: 28px; height: 28px; }
 
 .brand-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--md-sys-color-on-surface);
 }
 .brand-subtitle {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--md-sys-color-on-surface-variant);
   letter-spacing: 0.2px;
@@ -157,21 +172,21 @@ body {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-xs);
   flex: 1;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-sm);
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px var(--space-sm);
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s var(--ease-standard);
@@ -191,35 +206,36 @@ body {
 }
 
 .nav-icon {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
   width: 28px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .sidebar-footer {
-  padding: 16px;
-  font-size: 16px;
+  padding: var(--space-md) var(--space-sm);
+  font-size: 14px;
   color: var(--md-sys-color-on-surface-variant);
   text-align: center;
   border-top: 1px solid var(--md-sys-color-outline-variant);
-  margin-top: 12px;
+  margin-top: var(--space-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
 .sidebar-api {
-  padding: 0 4px;
-  margin-bottom: 4px;
+  padding: 0;
+  margin-bottom: var(--space-xs);
 }
 .api-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 0 8px;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  padding: 0 12px;
 }
 .api-status-dot {
   width: 10px;
@@ -232,7 +248,7 @@ body {
 .api-status-dot.ok { background: #4CAF50; box-shadow: 0 0 6px rgba(76,175,80,0.5); }
 .api-status-dot.error { background: #E8453C; box-shadow: 0 0 6px rgba(232,69,60,0.4); }
 .api-label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -240,11 +256,11 @@ body {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 15px;
+  font-size: 14px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -322,8 +338,8 @@ body {
 
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 24px;
+  grid-template-columns: minmax(340px, 1fr) 2fr;
+  gap: var(--space-lg);
   align-items: stretch;
 }
 
@@ -341,31 +357,41 @@ body {
 }
 
 .control-panel {
-  padding: 24px;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
 .visual-panel {
   padding: 0;
   overflow: hidden;
-  min-height: 480px;
+  min-height: 520px;
   display: flex;
   flex-direction: column;
+}
+
+.section-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
+  gap: var(--space-sm);
+  font-size: 16px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
-  margin-bottom: 16px;
   letter-spacing: 0.2px;
+  min-height: 44px;
 }
 .section-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* ========== Buttons ========== */
@@ -373,12 +399,15 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: var(--space-xs);
+  padding: 10px 20px;
+  min-height: 44px;
+  box-sizing: border-box;
   border: none;
-  border-radius: 20px;
-  font-size: 18px;
+  border-radius: var(--radius-pill);
+  font-size: 15px;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
   transition: transform 0.15s var(--ease-standard), box-shadow 0.2s var(--ease-standard), background 0.2s var(--ease-standard);
 }
@@ -412,8 +441,8 @@ body {
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: 12px;
-  font-size: 24px;
+  border-radius: var(--radius-md);
+  font-size: 22px;
   font-weight: 500;
 }
 
@@ -422,14 +451,14 @@ input[type="text"],
 input[type="number"],
 input[type="color"] {
   font-family: inherit;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 input[type="text"],
 input[type="number"] {
-  padding: 12px 14px;
+  padding: 10px 14px;
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   outline: none;
@@ -447,7 +476,7 @@ input[type="color"].color-picker {
   height: 36px;
   padding: 0;
   border: 2px solid var(--md-sys-color-outline-variant);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: transparent;
   cursor: pointer;
   -webkit-appearance: none;
@@ -458,17 +487,16 @@ input[type="color"].color-picker::-webkit-color-swatch-wrapper {
 }
 input[type="color"].color-picker::-webkit-color-swatch {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 /* ========== Graph Panel ========== */
 .func-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 6px 10px;
-  border-radius: 10px;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
   border: 1.5px solid transparent;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
@@ -495,7 +523,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 .func-row label {
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
   white-space: nowrap;
@@ -508,7 +536,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .range-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--space-md);
 }
 .range-grid.two-col {
   grid-template-columns: 1fr 1fr;
@@ -516,10 +544,10 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .range-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-xs);
 }
 .range-field label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -529,18 +557,22 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
 .control-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+.control-actions .btn {
+  flex: 1;
 }
 
 .graph-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 420px;
-  background: #FFFFFF;
+  min-height: 520px;
+  background: var(--canvas-bg);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  flex: 1;
 }
 .graph-wrapper canvas {
   display: block;
@@ -550,25 +582,25 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 .graph-coords {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
+  bottom: var(--space-md);
+  left: var(--space-md);
   background: rgba(28, 27, 31, 0.85);
   color: #fff;
-  padding: 8px 14px;
-  border-radius: 20px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 17px;
+  font-size: 16px;
   pointer-events: none;
   backdrop-filter: blur(8px);
 }
 .graph-legend {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: var(--space-md);
+  right: var(--space-md);
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: var(--space-xs) var(--space-sm);
   min-width: 140px;
   box-shadow: var(--shadow-1);
   backdrop-filter: blur(8px);
@@ -576,9 +608,9 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  font-size: 17px;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  font-size: 16px;
 }
 .legend-item:last-child { margin-bottom: 0; }
 .legend-line {
@@ -595,16 +627,16 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .preset-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 .preset-chip,
 .op-chip {
-  padding: 10px 16px;
-  border-radius: 20px;
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-pill);
   border: 1px solid var(--md-sys-color-outline-variant);
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
@@ -624,19 +656,19 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .param-fields {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 .param-field {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 .param-field label {
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
-  width: 42px;
+  width: 48px;
   flex-shrink: 0;
 }
 .param-field input[type="text"] {
@@ -647,10 +679,11 @@ input[type="color"].color-picker::-webkit-color-swatch {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 420px;
-  background: #1C1B1F;
+  min-height: 520px;
+  background: var(--viewer-bg);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  flex: 1;
 }
 .viewer3d-wrapper canvas {
   display: block;
@@ -660,13 +693,13 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 .viewer3d-info {
   position: absolute;
-  bottom: 16px;
+  bottom: var(--space-md);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.9);
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
   font-size: 16px;
   font-weight: 500;
   pointer-events: none;
@@ -679,15 +712,15 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .vector-coords-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--space-sm);
 }
 .vector-coord-input {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-xs);
 }
 .vector-coord-input label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface-variant);
   text-transform: uppercase;
@@ -700,15 +733,14 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .op-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
 .vector-result {
-  margin-top: 20px;
-  padding: 16px;
+  padding: var(--space-md);
   background: var(--md-sys-color-surface-variant);
   border-radius: var(--radius-md);
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1.8;
   color: var(--md-sys-color-on-surface);
   min-height: 64px;
@@ -725,8 +757,8 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
 /* ========== AI Analysis ========== */
 .ai-section {
-  padding: 20px 24px;
-  margin-top: 8px;
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
   background: var(--md-sys-color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
@@ -736,7 +768,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-sm);
   flex-wrap: wrap;
 }
 .ai-header .section-title {
@@ -744,18 +776,41 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 .ai-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-sm);
   flex-shrink: 0;
 }
 .ai-result {
-  margin-top: 12px;
-  font-size: 18px;
-  line-height: 1.8;
+  margin-top: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  font-size: 14.5px;
+  line-height: 1.7;
   color: var(--md-sys-color-on-surface);
-  white-space: pre-wrap;
   word-break: break-word;
   min-height: 40px;
+  background: var(--md-sys-color-surface-variant);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--md-sys-color-primary);
 }
+.ai-result p { margin: 0 0 8px 0; }
+.ai-result p:last-child { margin-bottom: 0; }
+.ai-result p:first-child { margin-top: 0; }
+.ai-result strong { color: var(--md-sys-color-on-surface); font-weight: 700; }
+.ai-result .kw {
+  color: var(--md-sys-color-primary);
+  font-weight: 700;
+}
+.ai-result ol,
+.ai-result ul {
+  margin: 6px 0 10px 0;
+  padding-left: 22px;
+}
+.ai-result ol li,
+.ai-result ul li {
+  margin: 4px 0;
+  line-height: 1.65;
+}
+.ai-result ul li::marker { color: var(--md-sys-color-primary); }
+.ai-result ol li::marker { color: var(--md-sys-color-primary); font-weight: 600; }
 .ai-result.loading {
   display: flex;
   align-items: center;
@@ -781,8 +836,10 @@ input[type="color"].color-picker::-webkit-color-swatch {
   .workspace {
     grid-template-columns: 1fr;
   }
-  .visual-panel {
-    min-height: 420px;
+  .visual-panel,
+  .graph-wrapper,
+  .viewer3d-wrapper {
+    min-height: 440px;
   }
 }
 
@@ -833,7 +890,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   .control-panel { padding: 20px; }
   .ai-section {
     padding: 20px;
-    margin-top: 8px;
+    margin-top: var(--space-md);
   }
   .ai-header {
     flex-direction: column;
@@ -853,12 +910,12 @@ input[type="color"].color-picker::-webkit-color-swatch {
     grid-template-columns: 1fr 1fr;
   }
   .preset-grid {
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .preset-chip,
   .op-chip {
-    padding: 8px 12px;
-    font-size: 16px;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 14px;
   }
 }
 </style>
@@ -935,45 +992,49 @@ input[type="color"].color-picker::-webkit-color-swatch {
     <div class="panel active" id="panel-graph">
       <div class="workspace">
         <section class="control-panel">
-          <div class="section-title">
-            <span class="section-dot" style="background:#6366f1"></span>
-            函数定义
-          </div>
-          <div id="funcRows">
-            <div class="func-row selected" data-func="0">
-              <span class="func-sel-dot"></span>
-              <label>f(x)=</label>
-              <input type="text" class="func-input" value="sin(x)" placeholder="输入函数...">
-              <input type="color" class="color-picker" value="#0078D4">
-              <button class="btn btn-icon btn-outline add-func" title="添加函数">+</button>
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
+              函数定义
+            </div>
+            <div id="funcRows">
+              <div class="func-row selected" data-func="0">
+                <span class="func-sel-dot"></span>
+                <label>f(x)=</label>
+                <input type="text" class="func-input" value="sin(x)" placeholder="输入函数...">
+                <input type="color" class="color-picker" value="#0078D4">
+                <button class="btn btn-icon btn-outline add-func" title="添加函数">+</button>
+              </div>
             </div>
           </div>
 
-          <div class="section-title" style="margin-top:24px">
-            <span class="section-dot" style="background:#06b6d4"></span>
-            视图范围
-          </div>
-          <div class="range-grid">
-            <div class="range-field">
-              <label>X 最小</label>
-              <input type="number" class="range-min" value="-10" step="1">
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
+              视图范围
             </div>
-            <div class="range-field">
-              <label>X 最大</label>
-              <input type="number" class="range-max" value="10" step="1">
+            <div class="range-grid">
+              <div class="range-field">
+                <label>X 最小</label>
+                <input type="number" class="range-min" value="-10" step="1">
+              </div>
+              <div class="range-field">
+                <label>X 最大</label>
+                <input type="number" class="range-max" value="10" step="1">
+              </div>
+              <div class="range-field">
+                <label>Y 最小</label>
+                <input type="number" class="range-ymin" value="-7" step="1">
+              </div>
+              <div class="range-field">
+                <label>Y 最大</label>
+                <input type="number" class="range-ymax" value="7" step="1">
+              </div>
             </div>
-            <div class="range-field">
-              <label>Y 最小</label>
-              <input type="number" class="range-ymin" value="-7" step="1">
+            <div class="control-actions">
+              <button class="btn btn-primary" id="autoRange">自动适配</button>
+              <button class="btn btn-outline" id="resetView">重置视图</button>
             </div>
-            <div class="range-field">
-              <label>Y 最大</label>
-              <input type="number" class="range-ymax" value="7" step="1">
-            </div>
-          </div>
-          <div class="control-actions">
-            <button class="btn btn-primary" id="autoRange">自动适配</button>
-            <button class="btn btn-outline" id="resetView">重置视图</button>
           </div>
         </section>
 
@@ -989,7 +1050,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
       <div class="ai-section">
         <div class="ai-header">
           <div class="section-title">
-            <span class="section-dot" style="background:#8b5cf6"></span>
+            <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
             AI 深度分析
           </div>
           <div class="ai-actions">
@@ -1005,47 +1066,51 @@ input[type="color"].color-picker::-webkit-color-swatch {
     <div class="panel" id="panel-curve3d">
       <div class="workspace">
         <section class="control-panel">
-          <div class="section-title">
-            <span class="section-dot" style="background:#8b5cf6"></span>
-            预设曲线
-          </div>
-          <div class="preset-grid">
-            <button class="preset-chip active" data-preset="helix">螺旋线</button>
-            <button class="preset-chip" data-preset="trefoil">三叶结</button>
-            <button class="preset-chip" data-preset="lissajous">利萨如</button>
-            <button class="preset-chip" data-preset="sphere">球面螺线</button>
-          </div>
-
-          <div class="section-title" style="margin-top:24px">
-            <span class="section-dot" style="background:#f59e0b"></span>
-            参数方程
-          </div>
-          <div class="param-fields">
-            <div class="param-field">
-              <label>x(t) =</label>
-              <input type="text" id="curveX" value="cos(t)">
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
+              预设曲线
             </div>
-            <div class="param-field">
-              <label>y(t) =</label>
-              <input type="text" id="curveY" value="sin(t)">
-            </div>
-            <div class="param-field">
-              <label>z(t) =</label>
-              <input type="text" id="curveZ" value="t/10">
+            <div class="preset-grid">
+              <button class="preset-chip active" data-preset="helix">螺旋线</button>
+              <button class="preset-chip" data-preset="trefoil">三叶结</button>
+              <button class="preset-chip" data-preset="lissajous">利萨如</button>
+              <button class="preset-chip" data-preset="sphere">球面螺线</button>
             </div>
           </div>
 
-          <div class="range-grid two-col">
-            <div class="range-field">
-              <label>t 起始</label>
-              <input type="number" id="curveTMin" value="0" step="any">
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
+              参数方程
             </div>
-            <div class="range-field">
-              <label>t 结束</label>
-              <input type="number" id="curveTMax" value="62.8" step="any">
+            <div class="param-fields">
+              <div class="param-field">
+                <label>x(t) =</label>
+                <input type="text" id="curveX" value="cos(t)">
+              </div>
+              <div class="param-field">
+                <label>y(t) =</label>
+                <input type="text" id="curveY" value="sin(t)">
+              </div>
+              <div class="param-field">
+                <label>z(t) =</label>
+                <input type="text" id="curveZ" value="t/10">
+              </div>
             </div>
+
+            <div class="range-grid two-col">
+              <div class="range-field">
+                <label>t 起始</label>
+                <input type="number" id="curveTMin" value="0" step="any">
+              </div>
+              <div class="range-field">
+                <label>t 结束</label>
+                <input type="number" id="curveTMax" value="62.8" step="any">
+              </div>
+            </div>
+            <button class="btn btn-primary" id="curveDraw" style="width:100%">绘制曲线</button>
           </div>
-          <button class="btn btn-primary" id="curveDraw" style="width:100%;margin-top:16px">绘制曲线</button>
         </section>
 
         <section class="visual-panel">
@@ -1061,56 +1126,61 @@ input[type="color"].color-picker::-webkit-color-swatch {
     <div class="panel" id="panel-vector">
       <div class="workspace">
         <section class="control-panel">
-          <div class="section-title">
-            <span class="section-dot" style="background:#3b82f6"></span>
-            向量 A
-          </div>
-          <div class="vector-coords-row">
-            <div class="vector-coord-input">
-              <label>x</label>
-              <input type="number" id="vecAx" value="3" step="any">
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
+              向量 A
             </div>
-            <div class="vector-coord-input">
-              <label>y</label>
-              <input type="number" id="vecAy" value="2" step="any">
-            </div>
-            <div class="vector-coord-input">
-              <label>z</label>
-              <input type="number" id="vecAz" value="1" step="any">
-            </div>
-          </div>
-
-          <div class="section-title" style="margin-top:24px">
-            <span class="section-dot" style="background:#ef4444"></span>
-            向量 B
-          </div>
-          <div class="vector-coords-row">
-            <div class="vector-coord-input">
-              <label>x</label>
-              <input type="number" id="vecBx" value="1" step="any">
-            </div>
-            <div class="vector-coord-input">
-              <label>y</label>
-              <input type="number" id="vecBy" value="3" step="any">
-            </div>
-            <div class="vector-coord-input">
-              <label>z</label>
-              <input type="number" id="vecBz" value="2" step="any">
+            <div class="vector-coords-row">
+              <div class="vector-coord-input">
+                <label>x</label>
+                <input type="number" id="vecAx" value="3" step="any">
+              </div>
+              <div class="vector-coord-input">
+                <label>y</label>
+                <input type="number" id="vecAy" value="2" step="any">
+              </div>
+              <div class="vector-coord-input">
+                <label>z</label>
+                <input type="number" id="vecAz" value="1" step="any">
+              </div>
             </div>
           </div>
 
-          <div class="section-title" style="margin-top:24px">
-            <span class="section-dot" style="background:#10b981"></span>
-            运算
-          </div>
-          <div class="op-grid">
-            <button class="op-chip active" data-vop="both">A + B</button>
-            <button class="op-chip" data-vop="sub">A − B</button>
-            <button class="op-chip" data-vop="dot">A · B</button>
-            <button class="op-chip" data-vop="cross">A × B</button>
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
+              向量 B
+            </div>
+            <div class="vector-coords-row">
+              <div class="vector-coord-input">
+                <label>x</label>
+                <input type="number" id="vecBx" value="1" step="any">
+              </div>
+              <div class="vector-coord-input">
+                <label>y</label>
+                <input type="number" id="vecBy" value="3" step="any">
+              </div>
+              <div class="vector-coord-input">
+                <label>z</label>
+                <input type="number" id="vecBz" value="2" step="any">
+              </div>
+            </div>
           </div>
 
-          <div class="vector-result" id="vectorResult"></div>
+          <div class="section-block">
+            <div class="section-title">
+              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
+              运算
+            </div>
+            <div class="op-grid">
+              <button class="op-chip active" data-vop="both">A + B</button>
+              <button class="op-chip" data-vop="sub">A − B</button>
+              <button class="op-chip" data-vop="dot">A · B</button>
+              <button class="op-chip" data-vop="cross">A × B</button>
+            </div>
+            <div class="vector-result" id="vectorResult"></div>
+          </div>
         </section>
 
         <section class="visual-panel">
@@ -1308,37 +1378,37 @@ function drawBaseGraph(fast) {
 
   // Axis labels
   ctx.fillStyle = labelColor;
-  ctx.font = '38px sans-serif';
+  ctx.font = '44px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText('x', w - 26, originY + 10);
+  ctx.fillText('x', w - 30, originY + 12);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('y', originX, 10);
+  ctx.fillText('y', originX, 12);
   ctx.textBaseline = 'top';
 
-  ctx.font = '34px sans-serif';
+  ctx.font = '38px sans-serif';
   ctx.fillStyle = tickColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   for (let x = xStart; x <= xMax + xStep; x += xStep) {
     if (Math.abs(x) < xStep * 0.01) continue;
     const cx = toCanvasX(x);
-    ctx.fillText(formatNum(x), cx, originY + 10);
+    ctx.fillText(formatNum(x), cx, originY + 12);
   }
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   for (let y = yStart; y <= yMax + yStep; y += yStep) {
     if (Math.abs(y) < yStep * 0.01) continue;
     const cy = toCanvasY(y);
-    ctx.fillText(formatNum(y), originX - 10, cy);
+    ctx.fillText(formatNum(y), originX - 12, cy);
   }
 
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
   ctx.fillStyle = tickColor;
-  ctx.font = '34px sans-serif';
-  ctx.fillText('O', originX - 10, originY + 10);
+  ctx.font = '38px sans-serif';
+  ctx.fillText('O', originX - 12, originY + 12);
 
   // Plot functions and collect points for snapping
   const colors = ['#0078D4','#E8453C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#3498DB'];
@@ -1445,12 +1515,12 @@ function drawBaseGraph(fast) {
       ctx.save();
       const isSpecial = sp.type === 'max' || sp.type === 'min';
       const isRoot = sp.type === 'root';
-      const radius = isSpecial ? 8 : isRoot ? 7 : 6;
+      const radius = isSpecial ? 13 : isRoot ? 11 : 10;
 
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 8;
       ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
       ctx.arc(sp.mx, sp.my, radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -1458,28 +1528,28 @@ function drawBaseGraph(fast) {
       ctx.shadowBlur = 0;
       ctx.fillStyle = sp.color || '#333';
       ctx.beginPath();
-      ctx.arc(sp.mx, sp.my, radius - 1.5, 0, Math.PI * 2);
+      ctx.arc(sp.mx, sp.my, radius - 2, 0, Math.PI * 2);
       ctx.fill();
 
       if (isSpecial) {
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 16px sans-serif';
+        ctx.font = 'bold 22px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(sp.type === 'max' ? '▲' : '▼', sp.mx, sp.my + 1);
       } else if (isRoot) {
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        const r2 = radius - 4;
+        const r2 = radius - 5;
         ctx.moveTo(sp.mx - r2, sp.my);
         ctx.lineTo(sp.mx + r2, sp.my);
         ctx.stroke();
       } else if (sp.type === 'yintercept') {
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        const r2 = radius - 4;
+        const r2 = radius - 5;
         ctx.moveTo(sp.mx, sp.my - r2);
         ctx.lineTo(sp.mx, sp.my + r2);
         ctx.stroke();
@@ -1498,72 +1568,84 @@ function drawSnapOverlay() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   ctx.save();
 
-  // Crosshair lines
-  ctx.strokeStyle = isDark ? 'rgba(200,200,220,0.3)' : 'rgba(0,0,0,0.18)';
+  // 1. 淡虚线十字（极简）
+  ctx.strokeStyle = isDark ? 'rgba(200,200,220,0.16)' : 'rgba(0,0,0,0.07)';
   ctx.lineWidth = 1;
-  ctx.setLineDash([8, 5]);
+  ctx.setLineDash([3, 4]);
   ctx.beginPath(); ctx.moveTo(0, my); ctx.lineTo(w, my); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(mx, 0); ctx.lineTo(mx, h); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Outer glow
+  // 2. 圆环标记（白底 + 强调色描边 + 实心点）
   const accent = color || (type ? '#E8453C' : '#6750A4');
-  ctx.shadowColor = accent;
-  ctx.shadowBlur = 16;
-  ctx.fillStyle = accent;
-  ctx.beginPath(); ctx.arc(mx, my, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Inner white dot
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(mx, my, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(mx, my, 5.5, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(mx, my, 2, 0, Math.PI * 2); ctx.fill();
 
-  // Label
-  const labelText = type
-    ? `${label} (${formatNum(x)}, ${formatNum(y)})`
-    : `(${formatNum(x)}, ${formatNum(y)})`;
-  ctx.font = 'bold 26px "Roboto Mono", Consolas, monospace';
-  const m = ctx.measureText(labelText);
-  const tw = m.width;
-  const bh = type ? 52 : 40;
-  const padX = 14, padY = type ? 14 : 12;
-  const lx = Math.min(mx + 16, w - tw - padX * 2 - 10);
-  const ly = Math.max(my - bh - padY * 2, 8);
+  // 3. 简洁标签卡片（毛玻璃 + 圆角矩形）
+  const coordText = `(${formatNum(x)}, ${formatNum(y)})`;
+  const hasType = !!type;
+  const labelStr = hasType ? label : '';
+  const coordFont = '600 14px "Roboto Mono", Consolas, monospace';
+  const labelFont = '600 13px "Roboto", "Noto Sans SC", sans-serif';
 
-  // Tooltip background
-  ctx.fillStyle = isDark ? 'rgba(40,40,55,0.92)' : 'rgba(28,27,31,0.88)';
-  const rr = 10;
+  ctx.font = coordFont;
+  const coordW = ctx.measureText(coordText).width;
+  let labelW = 0;
+  if (hasType) {
+    ctx.font = labelFont;
+    labelW = ctx.measureText(labelStr).width + 10;
+  }
+  const padX = 10;
+  const cardH = 26;
+  const cardW = coordW + labelW + padX * 2;
+
+  // 智能定位：优先右上，靠近边界自动翻转
+  let lx = mx + 12;
+  let ly = my - cardH - 10;
+  if (lx + cardW > w - 6) lx = mx - cardW - 12;
+  if (lx < 6) lx = 6;
+  if (ly < 6) ly = my + 12;
+  if (ly + cardH > h - 6) ly = h - cardH - 6;
+
+  // 卡片背景（毛玻璃感）
+  ctx.fillStyle = isDark ? 'rgba(35,33,42,0.94)' : 'rgba(255,255,255,0.97)';
+  ctx.strokeStyle = isDark ? 'rgba(200,200,220,0.22)' : 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 1;
+  const rr = 6;
   ctx.beginPath();
   ctx.moveTo(lx + rr, ly);
-  ctx.lineTo(lx + tw + padX * 2 - rr, ly);
-  ctx.arcTo(lx + tw + padX * 2, ly, lx + tw + padX * 2, ly + rr, rr);
-  ctx.lineTo(lx + tw + padX * 2, ly + bh + padY * 2 - rr);
-  ctx.arcTo(lx + tw + padX * 2, ly + bh + padY * 2, lx + tw + padX * 2 - rr, ly + bh + padY * 2, rr);
-  ctx.lineTo(lx + rr, ly + bh + padY * 2);
-  ctx.arcTo(lx, ly + bh + padY * 2, lx, ly + bh + padY * 2 - rr, rr);
+  ctx.lineTo(lx + cardW - rr, ly);
+  ctx.arcTo(lx + cardW, ly, lx + cardW, ly + rr, rr);
+  ctx.lineTo(lx + cardW, ly + cardH - rr);
+  ctx.arcTo(lx + cardW, ly + cardH, lx + cardW - rr, ly + cardH, rr);
+  ctx.lineTo(lx + rr, ly + cardH);
+  ctx.arcTo(lx, ly + cardH, lx, ly + cardH - rr, rr);
   ctx.lineTo(lx, ly + rr);
   ctx.arcTo(lx, ly, lx + rr, ly, rr);
+  ctx.closePath();
   ctx.fill();
-
-  // Tooltip border accent
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
   ctx.stroke();
 
+  // 文本
   ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  if (type) {
-    ctx.font = 'bold 22px sans-serif';
+  ctx.textBaseline = 'middle';
+  const cy = ly + cardH / 2;
+  let tx = lx + padX;
+  if (hasType) {
+    ctx.font = labelFont;
     ctx.fillStyle = accent;
-    ctx.fillText(label, lx + padX, ly + padY - 2);
-    ctx.font = '20px "Roboto Mono", Consolas, monospace';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(`(${formatNum(x)}, ${formatNum(y)})`, lx + padX, ly + padY + 22);
-  } else {
-    ctx.font = 'bold 24px "Roboto Mono", Consolas, monospace';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(labelText, lx + padX, ly + padY);
+    ctx.fillText(labelStr, tx, cy);
+    tx += labelW;
   }
+  ctx.font = coordFont;
+  ctx.fillStyle = isDark ? 'rgba(230,225,229,0.95)' : 'rgba(28,27,31,0.9)';
+  ctx.fillText(coordText, tx, cy);
+
   ctx.restore();
 }
 
@@ -2301,14 +2383,139 @@ function setAIResult(el, loading) {
   if (loading) el.textContent = 'AI 分析中...';
 }
 
+// 美化 AI 输出：去除 LaTeX 公式标记、压缩空行、π符号、紫色关键词、列表化
+function formatAIResult(text) {
+  var s = String(text);
+  // 1. 统一换行
+  s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  // 2. 转义 HTML
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // 3. LaTeX → 可读符号
+  // 公式定界符 \( \) \[ \] $$
+  s = s.replace(/\\\(\s*/g, ' ').replace(/\s*\\\)/g, ' ');
+  s = s.replace(/\\\[\s*/g, ' ').replace(/\s*\\\]/g, ' ');
+  s = s.replace(/\$\$/g, ' ');
+  s = s.replace(/\\\$/g, '$');
+  // \frac{a}{b} → (a)/(b)
+  function replFrac(m, a, b) { return '(' + a + ')/(' + b + ')'; }
+  for (var i = 0; i < 3; i++) {
+    s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, replFrac);
+  }
+  // \sqrt{x} → √(x)
+  s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, function(m, a) { return '√(' + a + ')'; });
+  s = s.replace(/\\sqrt\s+([a-zA-Z0-9.]+)/g, '√$1');
+  // \text{...} \mathrm{...} 等文本包裹
+  s = s.replace(/\\(?:text|mathrm|mathbb|textbf|mathit|mathsf|operatorname|mathcal)\s*\{([^{}]*)\}/g, '$1');
+  // \left \right \big \Big 等尺寸修饰
+  s = s.replace(/\\left\s*/g, '').replace(/\\right\s*/g, '');
+  s = s.replace(/\\[bB]ig[lr]?\s*/g, '');
+  s = s.replace(/\\displaystyle\s*/g, '').replace(/\\limits\s*/g, '').replace(/\\nolimits\s*/g, '');
+
+  // 希腊字母与数学符号映射（仅匹配 \word 形式）
+  var symbols = {
+    'pi': 'π', 'alpha': 'α', 'beta': 'β', 'gamma': 'γ', 'delta': 'δ', 'Delta': 'Δ',
+    'epsilon': 'ε', 'varepsilon': 'ε', 'zeta': 'ζ', 'eta': 'η', 'theta': 'θ', 'Theta': 'Θ',
+    'iota': 'ι', 'kappa': 'κ', 'lambda': 'λ', 'Lambda': 'Λ', 'mu': 'μ', 'nu': 'ν',
+    'xi': 'ξ', 'Xi': 'Ξ', 'omicron': 'ο', 'Pi': 'Π', 'rho': 'ρ', 'varrho': 'ρ',
+    'sigma': 'σ', 'Sigma': 'Σ', 'tau': 'τ', 'upsilon': 'υ', 'phi': 'φ', 'varphi': 'φ', 'Phi': 'Φ',
+    'chi': 'χ', 'psi': 'ψ', 'Psi': 'Ψ', 'omega': 'ω', 'Omega': 'Ω',
+    'pm': '±', 'mp': '∓', 'times': '×', 'div': '÷', 'cdot': '·', 'ast': '∗',
+    'leq': '≤', 'le': '≤', 'geq': '≥', 'ge': '≥', 'neq': '≠', 'ne': '≠',
+    'approx': '≈', 'equiv': '≡', 'sim': '∼', 'cong': '≅', 'propto': '∝',
+    'infty': '∞', 'partial': '∂', 'nabla': '∇', 'forall': '∀', 'exists': '∃',
+    'notin': '∉', 'subset': '⊂', 'supset': '⊃', 'subseteq': '⊆', 'supseteq': '⊇',
+    'cup': '∪', 'cap': '∩', 'emptyset': '∅', 'sum': 'Σ', 'prod': 'Π', 'int': '∫', 'oint': '∮',
+    'rightarrow': '→', 'to': '→', 'Rightarrow': '⇒', 'implies': '⇒',
+    'leftarrow': '←', 'Leftarrow': '⇐', 'leftrightarrow': '↔', 'Leftrightarrow': '⇔', 'iff': '⇔',
+    'uparrow': '↑', 'downarrow': '↓', 'mapsto': '↦',
+    'circ': '∘', 'bullet': '•', 'dagger': '†', 'ddagger': '‡',
+    'angle': '∠', 'perp': '⊥', 'parallel': '∥', 'mid': '∣',
+    'otimes': '⊗', 'oplus': '⊕', 'hbar': 'ℏ', 'ell': 'ℓ',
+    'quad': ' ', 'qquad': '  '
+  };
+  s = s.replace(/\\([a-zA-Z]+)/g, function(m, name) {
+    return symbols.hasOwnProperty(name) ? symbols[name] : m;
+  });
+
+  // 4. π 相关数字/字面替换
+  s = s.replace(/3\.1415926?\d*/g, 'π');
+  s = s.replace(/3\.14(?!5)\d*/g, 'π');
+  s = s.replace(/\bpi\b/gi, 'π');
+  s = s.replace(/(\d)\s*pi\b/gi, '$1π');
+
+  // 5. 移除剩余 LaTeX 空白控制符
+  s = s.replace(/\\[,;:!]/g, ' ');
+  s = s.replace(/\\ /g, ' ');
+  s = s.replace(/\\/g, '');
+
+  // 6. Markdown 加粗/斜体
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+  // 7. 关键词紫色加粗（占位符策略，避免嵌套重复替换）
+  var keywords = [
+    '函数类型','单调性','奇偶性','周期性','渐近线','零点','极值点','极大值','极小值',
+    '最大值','最小值','定义域','值域','对称性','截距','斜率','导数','积分',
+    '向量','点积','叉积','数量积','向量积','模长','夹角','垂直','平行','投影',
+    '空间形态','螺旋','曲线','参数方程','几何意义','应用场景','计算方法',
+    '正弦','余弦','正切','双曲','指数','对数','幂函数','多项式','有理函数',
+    '驻点','拐点','凹凸性','收敛','发散','极限','连续','可导','可微','极值'
+  ];
+  keywords.sort(function(a, b) { return b.length - a.length; });
+  var kwMap = {};
+  keywords.forEach(function(kw, idx) {
+    var ph = '\x00KW' + idx + '\x00';
+    kwMap[ph] = kw;
+    s = s.replace(new RegExp(kw, 'g'), ph);
+  });
+
+  // 8. 压缩空白：行内多空格、行首尾、连续空行
+  s = s.replace(/[ \t]{2,}/g, ' ');
+  s = s.split('\n').map(function(l) { return l.trim(); }).join('\n');
+  s = s.replace(/\n{2,}/g, '\n');
+
+  // 9. 还原关键词为紫色加粗 span
+  Object.keys(kwMap).forEach(function(ph) {
+    s = s.replace(new RegExp(ph, 'g'), '<span class="kw">' + kwMap[ph] + '</span>');
+  });
+
+  // 10. 按行分段，识别有序/无序列表
+  var lines = s.split('\n').filter(function(l) { return l.trim(); });
+  var html = [];
+  var listType = null;
+  var listItems = [];
+  function flushList() {
+    if (listType && listItems.length) {
+      html.push('<' + listType + '>' + listItems.map(function(it) { return '<li>' + it + '</li>'; }).join('') + '</' + listType + '>');
+      listType = null;
+      listItems = [];
+    }
+  }
+  lines.forEach(function(line) {
+    var t = line.trim();
+    var olMatch = t.match(/^(\d+)[.、)]\s*(.+)/);
+    var ulMatch = t.match(/^[-*•·]\s*(.+)/);
+    if (olMatch) {
+      if (listType !== 'ol') { flushList(); listType = 'ol'; }
+      listItems.push(olMatch[2]);
+    } else if (ulMatch) {
+      if (listType !== 'ul') { flushList(); listType = 'ul'; }
+      listItems.push(ulMatch[1]);
+    } else {
+      flushList();
+      html.push('<p>' + t + '</p>');
+    }
+  });
+  flushList();
+  return html.join('');
+}
+
 // ---- Graph AI Analysis ----
 async function analyzeGraphFunctions(all) {
   var resultEl = document.getElementById('aiGraphResult');
   setAIResult(resultEl, true);
   try {
-    var canvas = document.getElementById('graphCanvas');
-    var dataURL = canvas ? canvas.toDataURL('image/png') : null;
-    if (!dataURL) throw new Error('无法获取图像');
     var funcExprs = [];
     var selectedExpr = '';
     document.querySelectorAll('#funcRows .func-row').forEach(function(row) {
@@ -2318,23 +2525,28 @@ async function analyzeGraphFunctions(all) {
     });
     if (!funcExprs.length) throw new Error('请先定义函数');
     if (!selectedExpr) selectedExpr = funcExprs[0];
+    // 附加视图范围与特殊点信息，弥补无图像输入
+    var rangeInfo = '当前视图范围：x ∈ [' + xMin + ', ' + xMax + ']，y ∈ [' + yMin + ', ' + yMax + ']。';
+    var spInfo = '';
+    if (typeof specialPoints !== 'undefined' && specialPoints && specialPoints.length) {
+      var spList = specialPoints.slice(0, 12).map(function(p) {
+        var typeName = p.type === 'max' ? '极大值' : p.type === 'min' ? '极小值' :
+          p.type === 'root' ? '零点' : p.type === 'yintercept' ? 'y轴截距' : p.type;
+        return typeName + '(' + formatNum(p.x) + ', ' + formatNum(p.y) + ')';
+      });
+      spInfo = '图中检测到的关键点：' + spList.join('、') + '。';
+    }
     var prompt;
     if (all) {
-      prompt = '请分析这张数学函数图像。图中包含以下函数：' + funcExprs.map(function(f,i){return 'f'+i+'(x)='+f}).join('；') + '。请分别分析每个函数的类型、关键特征(单调性、奇偶性、周期性)、零点、极值点，并比较它们之间的关系。用中文回答。';
+      prompt = '请分析以下数学函数：' + funcExprs.map(function(f,i){return 'f'+i+'(x)='+f}).join('；') + '。' + rangeInfo + spInfo +
+        '请分别分析每个函数的类型、关键特征(单调性、奇偶性、周期性)、零点、极值点，并比较它们之间的关系。用中文回答。';
     } else {
-      prompt = '请分析这张数学函数图像中的函数 f(x)=' + selectedExpr + '。包括：1.函数类型；2.关键特征(单调性、奇偶性、周期性、渐近线)；3.零点、极值点；4.整体形态。用中文回答。';
+      prompt = '请分析以下数学函数 f(x)=' + selectedExpr + '。' + rangeInfo + spInfo +
+        '包括：1.函数类型；2.关键特征(单调性、奇偶性、周期性、渐近线)；3.零点、极值点；4.整体形态。用中文回答。';
     }
-    if (dataURL.length > 2000000) {
-      prompt = '请分析以下数学函数（仅文字描述）：' + prompt.replace('这张数学函数图像中的','');
-      var result = await callDeepSeek([{ role: 'user', content: prompt }]);
-    } else {
-      var result = await callDeepSeek([{ role: 'user', content: [
-        { type: 'image_url', image_url: { url: dataURL } },
-        { type: 'text', text: prompt }
-      ]}]);
-    }
+    var result = await callDeepSeek([{ role: 'user', content: prompt }]);
     resultEl.className = 'ai-result';
-    resultEl.textContent = result;
+    resultEl.innerHTML = formatAIResult(result);
   } catch(err) {
     resultEl.className = 'ai-result';
     resultEl.innerHTML = '<span style="color:var(--md-sys-color-error);font-weight:600">分析失败</span><br>' + err.message;
@@ -2356,7 +2568,7 @@ function addCurveAISection() {
   section.className = 'curve-ai-section ai-section';
   section.style.cssText = 'margin-top:0';
   section.innerHTML = '<div class="ai-header">' +
-    '<div class="section-title"><span class="section-dot" style="background:#8b5cf6"></span>AI 分析曲线</div>' +
+    '<div class="section-title"><span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>AI 分析曲线</div>' +
     '<div class="ai-actions"><button class="btn btn-primary" id="analyzeCurveBtn">分析当前曲线</button></div>' +
     '</div><div class="ai-result" id="aiCurveResult" style="min-height:50px"></div>';
   workspace.insertAdjacentElement('afterend', section);
@@ -2388,7 +2600,7 @@ function addVectorAISection() {
   section.className = 'vector-ai-section ai-section';
   section.style.cssText = 'margin-top:0';
   section.innerHTML = '<div class="ai-header">' +
-    '<div class="section-title"><span class="section-dot" style="background:#8b5cf6"></span>AI 分析向量</div>' +
+    '<div class="section-title"><span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>AI 分析向量</div>' +
     '<div class="ai-actions"><button class="btn btn-primary" id="analyzeVecBtn">分析向量运算</button></div>' +
     '</div><div class="ai-result" id="aiVecResult" style="min-height:50px"></div>';
   workspace.insertAdjacentElement('afterend', section);
