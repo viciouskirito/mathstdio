@@ -108,7 +108,9 @@ body {
 
 /* ========== Sidebar ========== */
 .sidebar {
-  width: var(--sidebar-width);
+  flex: 1;
+  min-width: 240px;
+  max-width: 320px;
   flex-shrink: 0;
   background: var(--md-sys-color-surface);
   border-right: 1px solid var(--md-sys-color-outline-variant);
@@ -276,7 +278,7 @@ body {
 
 /* ========== Main Content ========== */
 .main-content {
-  flex: 1;
+  flex: 2;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -785,7 +787,10 @@ input[type="color"].color-picker::-webkit-color-swatch {
     flex-direction: column;
   }
   .sidebar {
+    flex: none;
     width: 100%;
+    min-width: 0;
+    max-width: none;
     flex-direction: row;
     align-items: center;
     padding: 10px 12px;
