@@ -324,7 +324,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .control-panel,
@@ -536,16 +536,16 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .graph-wrapper {
   position: relative;
   width: 100%;
-  min-height: 480px;
+  height: 100%;
+  min-height: 420px;
   background: #FFFFFF;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  margin: 12px;
 }
 .graph-wrapper canvas {
   display: block;
   width: 100%;
-  height: 420px;
+  height: 100%;
   touch-action: none;
 }
 .graph-coords {
@@ -646,12 +646,11 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .viewer3d-wrapper {
   position: relative;
   width: 100%;
-  flex: 1;
-  min-height: 480px;
+  height: 100%;
+  min-height: 420px;
   background: #1C1B1F;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  margin: 12px;
 }
 .viewer3d-wrapper canvas {
   display: block;
@@ -832,7 +831,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
   .topbar h1 { font-size: 28px; }
   .panel { padding: 8px 20px 20px; }
   .control-panel { padding: 20px; }
-  .graph-wrapper, .viewer3d-wrapper { margin: 8px; }
   .ai-section {
     padding: 20px;
     margin-top: 8px;
@@ -1217,11 +1215,13 @@ let mouseX = 0, mouseY = 0, snapPoint = null;
 let plottedPoints = [], specialPoints = [];
 
 function resizeCanvas() {
-  const rect = canvas.parentElement.getBoundingClientRect();
-  const w = rect.width * 2, h = 420 * 2;
+  const wrapper = canvas.parentElement;
+  if (!wrapper) return;
+  const rect = wrapper.getBoundingClientRect();
+  const w = rect.width * 2, h = rect.height * 2;
   canvas.width = w; canvas.height = h;
   canvas.style.width = rect.width + 'px';
-  canvas.style.height = '420px';
+  canvas.style.height = rect.height + 'px';
   baseCanvas.width = w; baseCanvas.height = h;
   graphDirty = true;
   drawGraph();
