@@ -718,16 +718,37 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 
 /* ========== AI Analysis ========== */
+.ai-section {
+  padding: 24px;
+  margin-top: 12px;
+  background: var(--md-sys-color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ai-header .section-title {
+  margin-bottom: 0;
+}
+.ai-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
 .ai-result {
-  min-height: 120px;
-  padding: 16px;
-  background: var(--md-sys-color-surface-variant);
-  border-radius: var(--radius-md);
+  margin-top: 14px;
   font-size: 18px;
   line-height: 1.8;
   color: var(--md-sys-color-on-surface);
   white-space: pre-wrap;
   word-break: break-word;
+  min-height: 60px;
 }
 .ai-result.loading {
   display: flex;
@@ -747,22 +768,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-.ai-section {
-  padding: 24px;
-  margin-top: 12px;
-  background: var(--md-sys-color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  border: 1px solid var(--md-sys-color-outline-variant);
-}
-.ai-controls {
-  display: flex;
-  gap: 10px;
-  margin: 16px 0;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 /* ========== Responsive ========== */
@@ -818,8 +823,9 @@ input[type="color"].color-picker::-webkit-color-swatch {
     padding: 20px;
     margin-top: 8px;
   }
-  .ai-controls {
+  .ai-header {
     flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -968,13 +974,15 @@ input[type="color"].color-picker::-webkit-color-swatch {
       </div>
 
       <div class="ai-section">
-        <div class="section-title">
-          <span class="section-dot" style="background:#8b5cf6"></span>
-          AI 深度分析
-        </div>
-        <div class="ai-controls">
-          <button class="btn btn-primary" id="analyzeGraphBtn">分析选中</button>
-          <button class="btn btn-outline" id="analyzeGraphAllBtn">分析全部</button>
+        <div class="ai-header">
+          <div class="section-title">
+            <span class="section-dot" style="background:#8b5cf6"></span>
+            AI 深度分析
+          </div>
+          <div class="ai-actions">
+            <button class="btn btn-primary" id="analyzeGraphBtn">分析选中</button>
+            <button class="btn btn-outline" id="analyzeGraphAllBtn">分析全部</button>
+          </div>
         </div>
         <div class="ai-result" id="aiGraphResult"></div>
       </div>
@@ -2332,9 +2340,10 @@ function addCurveAISection() {
   var section = document.createElement('div');
   section.className = 'curve-ai-section ai-section';
   section.style.cssText = 'margin-top:0';
-  section.innerHTML = '<div class="section-title"><span class="section-dot" style="background:#8b5cf6"></span>AI 分析曲线</div>' +
-    '<button class="btn btn-primary" id="analyzeCurveBtn" style="width:100%">分析当前曲线</button>' +
-    '<div class="ai-result" id="aiCurveResult" style="margin-top:12px;min-height:50px"></div>';
+  section.innerHTML = '<div class="ai-header">' +
+    '<div class="section-title"><span class="section-dot" style="background:#8b5cf6"></span>AI 分析曲线</div>' +
+    '<div class="ai-actions"><button class="btn btn-primary" id="analyzeCurveBtn">分析当前曲线</button></div>' +
+    '</div><div class="ai-result" id="aiCurveResult" style="min-height:50px"></div>';
   workspace.insertAdjacentElement('afterend', section);
 
   document.getElementById('analyzeCurveBtn').addEventListener('click', async function() {
@@ -2363,9 +2372,10 @@ function addVectorAISection() {
   var section = document.createElement('div');
   section.className = 'vector-ai-section ai-section';
   section.style.cssText = 'margin-top:0';
-  section.innerHTML = '<div class="section-title"><span class="section-dot" style="background:#8b5cf6"></span>AI 分析向量</div>' +
-    '<button class="btn btn-primary" id="analyzeVecBtn" style="width:100%">分析向量运算</button>' +
-    '<div class="ai-result" id="aiVecResult" style="margin-top:12px;min-height:50px"></div>';
+  section.innerHTML = '<div class="ai-header">' +
+    '<div class="section-title"><span class="section-dot" style="background:#8b5cf6"></span>AI 分析向量</div>' +
+    '<div class="ai-actions"><button class="btn btn-primary" id="analyzeVecBtn">分析向量运算</button></div>' +
+    '</div><div class="ai-result" id="aiVecResult" style="min-height:50px"></div>';
   workspace.insertAdjacentElement('afterend', section);
 
   document.getElementById('analyzeVecBtn').addEventListener('click', async function() {
