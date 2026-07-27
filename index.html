@@ -102,7 +102,8 @@
   border-color: var(--md-sys-color-outline-variant);
 }
 [data-theme="dark"] .graph-coords {
-  background: rgba(230, 225, 229, 0.12);
+  background: rgba(28, 27, 31, 0.92);
+  border-color: rgba(255,255,255,0.06);
 }
 
 html, body { height: 100%; }
@@ -122,29 +123,38 @@ body {
 
 /* ========== Sidebar ========== */
 .sidebar {
-  flex: 1;
-  min-width: 240px;
-  max-width: 320px;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: 260px;
+  min-width: 260px;
   height: 100vh;
   background: var(--md-sys-color-surface);
   border-right: 1px solid var(--md-sys-color-outline-variant);
   display: flex;
   flex-direction: column;
-  padding: 20px 16px 16px;
+  padding: 20px 14px 16px;
   z-index: 10;
+  transition: width 0.25s var(--ease-emphasized), min-width 0.25s var(--ease-emphasized), padding 0.25s var(--ease-emphasized);
+  overflow: hidden;
+}
+.sidebar.collapsed {
+  width: 60px;
+  min-width: 60px;
+  padding: 20px 8px 16px;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-sm) var(--space-lg);
+  gap: var(--space-md);
+  padding: var(--space-xs) var(--space-xs) var(--space-lg);
+  position: relative;
 }
+.sidebar.collapsed .sidebar-brand { gap: 0; padding: var(--space-xs) 0 var(--space-md); justify-content: center; }
+.sidebar.collapsed .brand-text { display: none; }
 
 .brand-icon {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--md-sys-color-primary), #9b7fd4);
   color: var(--md-sys-color-on-primary);
@@ -153,21 +163,49 @@ body {
   justify-content: center;
   box-shadow: 0 2px 12px rgba(103,80,164,0.3);
   flex-shrink: 0;
+  transition: width 0.25s var(--ease-emphasized), height 0.25s var(--ease-emphasized);
 }
-.brand-icon svg { width: 28px; height: 28px; }
+.sidebar.collapsed .brand-icon { width: 40px; height: 40px; }
+.brand-icon svg { width: 26px; height: 26px; }
 
 .brand-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--md-sys-color-on-surface);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .brand-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--md-sys-color-on-surface-variant);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
+
+.collapse-btn {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background 0.2s, transform 0.25s var(--ease-emphasized);
+  z-index: 2;
+}
+.collapse-btn:hover { background: var(--md-sys-color-surface-variant); }
+.collapse-btn svg { width: 16px; height: 16px; transition: transform 0.25s var(--ease-emphasized); }
+.sidebar.collapsed .collapse-btn svg { transform: rotate(180deg); }
 
 .sidebar-nav {
   display: flex;
@@ -181,18 +219,26 @@ body {
   align-items: center;
   gap: var(--space-sm);
   width: 100%;
-  padding: 12px var(--space-sm);
+  padding: 13px var(--space-md);
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s var(--ease-standard);
   text-align: left;
   position: relative;
+  white-space: nowrap;
+  overflow: hidden;
 }
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 13px 0;
+  gap: 0;
+}
+.sidebar.collapsed .nav-label { display: none; }
 .nav-item:hover {
   background: var(--md-sys-color-surface-variant);
   transform: translateX(2px);
@@ -206,15 +252,20 @@ body {
 }
 
 .nav-icon {
-  font-size: 22px;
-  line-height: 1;
-  width: 28px;
-  text-align: center;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .sidebar-footer {
-  padding: var(--space-md) var(--space-sm);
+  padding: var(--space-md) var(--space-sm) var(--space-xs);
   font-size: 14px;
   color: var(--md-sys-color-on-surface-variant);
   text-align: center;
@@ -224,22 +275,36 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
+  white-space: nowrap;
+  overflow: hidden;
 }
+.sidebar.collapsed .sidebar-footer { justify-content: center; }
+.sidebar.collapsed .sidebar-footer span { display: none; }
 
 .sidebar-api {
   padding: 0;
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  background: var(--md-sys-color-surface-variant);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  overflow: hidden;
 }
+.sidebar.collapsed .sidebar-api { display: none; }
 .api-header {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  margin-bottom: var(--space-xs);
-  padding: 0 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+.api-header:hover {
+  background: rgba(103, 80, 164, 0.06);
 }
 .api-status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #888;
   flex-shrink: 0;
@@ -248,25 +313,44 @@ body {
 .api-status-dot.ok { background: #4CAF50; box-shadow: 0 0 6px rgba(76,175,80,0.5); }
 .api-status-dot.error { background: #E8453C; box-shadow: 0 0 6px rgba(232,69,60,0.4); }
 .api-label {
-  font-size: 14px;
+  flex: 1;
+  font-size: 13px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
+}
+.api-toggle-icon {
+  font-size: 11px;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: transform 0.2s var(--ease-standard);
+}
+.sidebar-api.open .api-toggle-icon {
+  transform: rotate(180deg);
+}
+.api-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s var(--ease-standard), padding 0.25s var(--ease-standard);
+  padding: 0 12px;
+}
+.sidebar-api.open .api-body {
+  max-height: 120px;
+  padding: 0 12px 12px;
 }
 .api-key-input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 14px;
+  font-size: 12px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .api-key-input:focus {
   border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 2px rgba(103,80,164,0.15);
+  box-shadow: 0 0 0 2px rgba(103,80,164,0.12);
 }
 
 .theme-toggle {
@@ -279,19 +363,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background 0.2s, border-color 0.2s, transform 0.15s, color 0.2s;
 }
 .theme-toggle:hover {
   background: var(--md-sys-color-surface-variant);
   border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-primary);
 }
 .theme-toggle:active {
   transform: scale(0.95);
 }
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
 .theme-icon-dark { display: none; }
 [data-theme="dark"] .theme-icon-light { display: none; }
-[data-theme="dark"] .theme-icon-dark { display: inline; }
+[data-theme="dark"] .theme-icon-dark { display: inline-flex; }
 
 /* ========== Main Content ========== */
 .main-content {
@@ -304,26 +394,28 @@ body {
 }
 
 .topbar {
-  padding: 24px 32px 8px;
+  padding: 28px 36px 12px;
   background: var(--md-sys-color-background);
   flex-shrink: 0;
 }
 .topbar h1 {
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 4px;
+  letter-spacing: -0.3px;
 }
 .page-subtitle {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--md-sys-color-on-surface-variant);
   font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 /* ========== Panels ========== */
 .panel {
   display: none;
-  padding: 8px 32px 24px;
+  padding: 12px 36px 28px;
   flex: 1;
   animation: panelIn 0.3s var(--ease-emphasized);
 }
@@ -339,7 +431,7 @@ body {
 .workspace {
   display: grid;
   grid-template-columns: minmax(340px, 1fr) 2fr;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
   align-items: stretch;
 }
 
@@ -357,16 +449,16 @@ body {
 }
 
 .control-panel {
-  padding: var(--space-lg);
+  padding: var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }
 
 .visual-panel {
   padding: 0;
   overflow: hidden;
-  min-height: 520px;
+  min-height: 540px;
   display: flex;
   flex-direction: column;
 }
@@ -375,24 +467,28 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  padding: var(--space-sm) 0 var(--space-md) var(--space-sm);
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+.section-block:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
 }
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--md-sys-color-on-surface);
-  letter-spacing: 0.2px;
-  min-height: 44px;
-}
-.section-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+
+          .section-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--md-sys-color-on-surface);
+            letter-spacing: 0.2px;
+            min-height: 40px;
+            padding: 0 4px;
+          }
 
 /* ========== Buttons ========== */
 .btn {
@@ -400,7 +496,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  padding: 10px 20px;
+  padding: 10px 22px;
   min-height: 44px;
   box-sizing: border-box;
   border: none;
@@ -409,14 +505,15 @@ body {
   font-weight: 600;
   line-height: 1.2;
   cursor: pointer;
-  transition: transform 0.15s var(--ease-standard), box-shadow 0.2s var(--ease-standard), background 0.2s var(--ease-standard);
+  transition: transform 0.15s var(--ease-standard), box-shadow 0.2s var(--ease-standard), background 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
 }
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-2);
 }
 .btn:active {
-  transform: scale(0.98);
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .btn-primary {
@@ -451,14 +548,14 @@ input[type="text"],
 input[type="number"],
 input[type="color"] {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 input[type="text"],
 input[type="number"] {
-  padding: 10px 14px;
+  padding: 11px 14px;
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   outline: none;
@@ -467,20 +564,21 @@ input[type="number"] {
 input[type="text"]:focus,
 input[type="number"]:focus {
   border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.15);
+  box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.14);
   background: var(--md-sys-color-surface);
 }
 
 input[type="color"].color-picker {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 2px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
+  flex-shrink: 0;
 }
 input[type="color"].color-picker::-webkit-color-swatch-wrapper {
   padding: 0;
@@ -495,7 +593,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
   border: 1.5px solid transparent;
   cursor: pointer;
@@ -508,35 +606,34 @@ input[type="color"].color-picker::-webkit-color-swatch {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
 }
-.func-sel-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid var(--md-sys-color-outline);
-  flex-shrink: 0;
-  transition: border-color 0.2s, background 0.2s;
-}
-.func-row.selected .func-sel-dot {
-  border-color: var(--md-sys-color-primary);
-  background: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 3px rgba(103,80,164,0.2);
-}
 .func-row label {
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
   white-space: nowrap;
+  padding: 2px 0;
 }
-.func-row .func-input {
+.func-row .func-input-wrap {
   flex: 1;
   min-width: 0;
+  position: relative;
+}
+.func-row .func-input {
+  width: 100%;
+  font-family: 'Roboto Mono', Consolas, monospace;
+}
+.range-field input[type="number"],
+.param-field input[type="text"],
+.vector-coord-input input[type="number"] {
+  font-family: 'Roboto Mono', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .range-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+  gap: var(--space-md) var(--space-lg);
 }
 .range-grid.two-col {
   grid-template-columns: 1fr 1fr;
@@ -550,6 +647,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   font-size: 14px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
+  letter-spacing: 0.2px;
 }
 .range-field input[type="number"] {
   width: 100%;
@@ -568,7 +666,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 520px;
+  min-height: 540px;
   background: var(--canvas-bg);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -584,43 +682,75 @@ input[type="color"].color-picker::-webkit-color-swatch {
   position: absolute;
   bottom: var(--space-md);
   left: var(--space-md);
-  background: rgba(28, 27, 31, 0.85);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(28, 27, 31, 0.92);
   color: #fff;
-  padding: var(--space-xs) var(--space-sm);
+  padding: 10px 20px 10px 16px;
   border-radius: var(--radius-pill);
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 500;
   pointer-events: none;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  letter-spacing: 0.3px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.graph-coords .coord-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.graph-coords .coord-dot.active {
+  box-shadow: 0 0 8px currentColor;
+}
+.graph-coords .coord-func {
+  color: rgba(255,255,255,0.72);
+  font-weight: 600;
+  font-size: 16px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graph-coords .coord-value {
+  color: #fff;
+  font-weight: 600;
 }
 .graph-legend {
   position: absolute;
   top: var(--space-md);
   right: var(--space-md);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--radius-md);
-  padding: var(--space-xs) var(--space-sm);
-  min-width: 140px;
-  box-shadow: var(--shadow-1);
-  backdrop-filter: blur(8px);
+  padding: var(--space-sm) var(--space-md);
+  min-width: 150px;
+  box-shadow: var(--shadow-2);
+  backdrop-filter: blur(10px);
 }
 .legend-item {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
   margin-bottom: var(--space-xs);
-  font-size: 16px;
+  font-size: 15px;
 }
 .legend-item:last-child { margin-bottom: 0; }
 .legend-line {
   width: 24px;
-  height: 3px;
+  height: 4px;
   border-radius: 2px;
+  flex-shrink: 0;
 }
 .legend-text {
   color: var(--md-sys-color-on-surface);
   font-family: 'Roboto Mono', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* ========== 3D Curve Panel ========== */
@@ -631,15 +761,16 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 .preset-chip,
 .op-chip {
-  padding: 10px var(--space-md);
+  padding: 11px var(--space-lg);
   border-radius: var(--radius-pill);
   border: 1px solid var(--md-sys-color-outline-variant);
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+  letter-spacing: 0.2px;
 }
 .preset-chip:hover,
 .op-chip:hover {
@@ -665,10 +796,10 @@ input[type="color"].color-picker::-webkit-color-swatch {
 }
 .param-field label {
   font-family: 'Roboto Mono', Consolas, monospace;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
-  width: 48px;
+  width: 52px;
   flex-shrink: 0;
 }
 .param-field input[type="text"] {
@@ -679,7 +810,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 520px;
+  min-height: 540px;
   background: var(--viewer-bg);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -696,23 +827,24 @@ input[type="color"].color-picker::-webkit-color-swatch {
   bottom: var(--space-md);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
-  padding: var(--space-xs) var(--space-md);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.88);
+  padding: var(--space-xs) var(--space-lg);
   border-radius: var(--radius-pill);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   pointer-events: none;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.06);
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
 /* ========== Vector Panel ========== */
 .vector-coords-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 .vector-coord-input {
   display: flex;
@@ -724,7 +856,7 @@ input[type="color"].color-picker::-webkit-color-swatch {
   font-weight: 700;
   color: var(--md-sys-color-on-surface-variant);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 .vector-coord-input input[type="number"] {
   width: 100%;
@@ -739,11 +871,12 @@ input[type="color"].color-picker::-webkit-color-swatch {
 .vector-result {
   padding: var(--space-md);
   background: var(--md-sys-color-surface-variant);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 15px;
   line-height: 1.8;
   color: var(--md-sys-color-on-surface);
-  min-height: 64px;
+  min-height: 68px;
+  border: 1px solid var(--md-sys-color-outline-variant);
 }
 .vector-result .label {
   color: var(--md-sys-color-on-surface-variant);
@@ -754,81 +887,73 @@ input[type="color"].color-picker::-webkit-color-swatch {
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
-
 /* ========== AI Analysis ========== */
 .ai-section {
-  padding: var(--space-lg);
   margin-top: var(--space-lg);
   background: var(--md-sys-color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
   border: 1px solid var(--md-sys-color-outline-variant);
+  overflow: hidden;
 }
 .ai-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  flex-wrap: wrap;
+  padding: var(--space-md) var(--space-xl);
 }
-.ai-header .section-title {
-  margin-bottom: 0;
+.ai-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
 }
 .ai-actions {
   display: flex;
   gap: var(--space-sm);
   flex-shrink: 0;
 }
+.ai-divider {
+  height: 1px;
+  background: var(--md-sys-color-outline-variant);
+  margin: 0 var(--space-xl);
+}
 .ai-result {
-  margin-top: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  font-size: 14.5px;
-  line-height: 1.7;
+  padding: var(--space-md) var(--space-xl) var(--space-xl);
+  font-size: 16px;
+  line-height: 1.85;
   color: var(--md-sys-color-on-surface);
-  word-break: break-word;
-  min-height: 40px;
-  background: var(--md-sys-color-surface-variant);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--md-sys-color-primary);
+  min-height: 56px;
 }
-.ai-result p { margin: 0 0 8px 0; }
-.ai-result p:last-child { margin-bottom: 0; }
-.ai-result p:first-child { margin-top: 0; }
-.ai-result strong { color: var(--md-sys-color-on-surface); font-weight: 700; }
-.ai-result .kw {
-  color: var(--md-sys-color-primary);
-  font-weight: 700;
-}
-.ai-result ol,
-.ai-result ul {
-  margin: 6px 0 10px 0;
-  padding-left: 22px;
-}
-.ai-result ol li,
-.ai-result ul li {
-  margin: 4px 0;
-  line-height: 1.65;
-}
-.ai-result ul li::marker { color: var(--md-sys-color-primary); }
-.ai-result ol li::marker { color: var(--md-sys-color-primary); font-weight: 600; }
 .ai-result.loading {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--md-sys-color-primary);
+  gap: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 500;
+  font-size: 15px;
 }
 .ai-result.loading::before {
   content: '';
-  width: 20px;
-  height: 20px;
-  border: 2.5px solid var(--md-sys-color-outline-variant);
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--md-sys-color-outline-variant);
   border-top-color: var(--md-sys-color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-result p { margin: 0 0 10px 0; }
+.ai-result p:last-child { margin-bottom: 0; }
+.ai-result strong, .ai-result b { font-weight: 700; }
+.ai-result em { color: var(--md-sys-color-primary); font-style: normal; font-weight: 600; }
+.ai-result ul, .ai-result ol { margin: 8px 0 12px 0; padding-left: 24px; }
+.ai-result li { margin: 5px 0; line-height: 1.7; }
+.ai-result h3, .ai-result .ai-heading {
+  font-size: 17px; font-weight: 700; margin: 16px 0 8px 0;
+  color: var(--md-sys-color-on-surface);
 }
 
 /* ========== Responsive ========== */
@@ -840,6 +965,9 @@ input[type="color"].color-picker::-webkit-color-swatch {
   .graph-wrapper,
   .viewer3d-wrapper {
     min-height: 440px;
+  }
+  .control-panel {
+    padding: var(--space-lg);
   }
 }
 
@@ -862,10 +990,16 @@ input[type="color"].color-picker::-webkit-color-swatch {
     border-bottom: 1px solid var(--md-sys-color-outline-variant);
     overflow-x: auto;
   }
+  .sidebar.collapsed { width: 100%; min-width: 0; padding: 10px 12px; }
+  .collapse-btn { display: none; }
   .sidebar-brand {
     padding: 0 8px 0 0;
     margin-right: auto;
+    gap: var(--space-xs);
   }
+  .sidebar.collapsed .sidebar-brand { gap: var(--space-xs); padding: 0 8px 0 0; justify-content: flex-start; }
+  .sidebar.collapsed .brand-text { display: block; }
+  .sidebar.collapsed .brand-subtitle { display: none; }
   .brand-icon { width: 38px; height: 38px; }
   .brand-icon svg { width: 22px; height: 22px; }
   .brand-subtitle { display: none; }
@@ -877,7 +1011,10 @@ input[type="color"].color-picker::-webkit-color-swatch {
     width: auto;
     padding: 10px 14px;
     white-space: nowrap;
+    font-size: 14px;
   }
+  .sidebar.collapsed .nav-item { justify-content: flex-start; padding: 10px 14px; gap: var(--space-sm); }
+  .sidebar.collapsed .nav-label { display: none; }
   .nav-label { display: none; }
   .sidebar-footer { display: none; }
   .sidebar-api { display: none; }
@@ -885,16 +1022,13 @@ input[type="color"].color-picker::-webkit-color-swatch {
   .topbar {
     padding: 20px 20px 8px;
   }
-  .topbar h1 { font-size: 28px; }
+  .topbar h1 { font-size: 26px; }
   .panel { padding: 8px 20px 20px; }
-  .control-panel { padding: 20px; }
-  .ai-section {
-    padding: 20px;
-    margin-top: var(--space-md);
-  }
-  .ai-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .control-panel { padding: var(--space-md); }
+  .ai-header { padding: var(--space-sm) var(--space-md); }
+  .ai-result { padding: var(--space-md); }
+  .section-title {
+    font-size: 15px;
   }
 }
 
@@ -932,10 +1066,10 @@ input[type="color"].color-picker::-webkit-color-swatch {
 <body>
 <div class="app-shell">
   <!-- 左侧固定侧边栏 -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="brand-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
           <line x1="8" y1="7" x2="16" y2="7"/>
@@ -946,35 +1080,68 @@ input[type="color"].color-picker::-webkit-color-swatch {
         <div class="brand-title">Math Studio</div>
         <div class="brand-subtitle">可视化数学实验室</div>
       </div>
+      <button class="collapse-btn" id="collapseBtn" title="收起侧边栏">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="graph">
-        <span class="nav-icon">📈</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
         <span class="nav-label">2D函数图像</span>
       </button>
       <button class="nav-item" data-tab="curve3d">
-        <span class="nav-icon">🌀</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </span>
         <span class="nav-label">3D参数曲线</span>
       </button>
       <button class="nav-item" data-tab="vector">
-        <span class="nav-icon">➡️</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="20" x2="12" y2="10"/>
+            <line x1="18" y1="20" x2="18" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="16"/>
+          </svg>
+        </span>
         <span class="nav-label">向量运算</span>
       </button>
     </nav>
 
-    <div class="sidebar-api">
-      <div class="api-header">
+    <div class="sidebar-api" id="sidebarApi">
+      <div class="api-header" id="apiHeader">
         <span class="api-status-dot" id="apiStatusDot"></span>
         <span class="api-label">DeepSeek API</span>
+        <span class="api-toggle-icon" id="apiToggleIcon">▼</span>
       </div>
-      <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-...">
+      <div class="api-body" id="apiBody">
+        <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-...">
+      </div>
     </div>
 
     <div class="sidebar-footer">
-      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式">
-        <span class="theme-icon-light">🌙</span>
-        <span class="theme-icon-dark">☀️</span>
+      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式" aria-label="切换主题">
+        <span class="theme-icon-light">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </span>
+        <span class="theme-icon-dark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+        </span>
       </button>
       <span>v2.0</span>
     </div>
@@ -994,14 +1161,14 @@ input[type="color"].color-picker::-webkit-color-swatch {
         <section class="control-panel">
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
               函数定义
             </div>
             <div id="funcRows">
               <div class="func-row selected" data-func="0">
-                <span class="func-sel-dot"></span>
                 <label>f(x)=</label>
-                <input type="text" class="func-input" value="sin(x)" placeholder="输入函数...">
+                <div class="func-input-wrap">
+                  <input type="text" class="func-input" value="sin(x)" placeholder="输入函数...">
+                </div>
                 <input type="color" class="color-picker" value="#0078D4">
                 <button class="btn btn-icon btn-outline add-func" title="添加函数">+</button>
               </div>
@@ -1010,7 +1177,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
               视图范围
             </div>
             <div class="range-grid">
@@ -1041,7 +1207,11 @@ input[type="color"].color-picker::-webkit-color-swatch {
         <section class="visual-panel">
           <div class="graph-wrapper">
             <canvas id="graphCanvas"></canvas>
-            <div class="graph-coords" id="graphCoords">(0.00, 0.00)</div>
+            <div class="graph-coords" id="graphCoords">
+              <span class="coord-dot" id="coordDot"></span>
+              <span class="coord-func" id="coordFunc"></span>
+              <span class="coord-value" id="coordValue">(0.00, 0.00)</span>
+            </div>
             <div class="graph-legend" id="graphLegend"></div>
           </div>
         </section>
@@ -1049,15 +1219,13 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
       <div class="ai-section">
         <div class="ai-header">
-          <div class="section-title">
-            <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
-            AI 深度分析
-          </div>
+          <span class="ai-title">AI 函数分析</span>
           <div class="ai-actions">
             <button class="btn btn-primary" id="analyzeGraphBtn">分析选中</button>
             <button class="btn btn-outline" id="analyzeGraphAllBtn">分析全部</button>
           </div>
         </div>
+        <div class="ai-divider"></div>
         <div class="ai-result" id="aiGraphResult"></div>
       </div>
     </div>
@@ -1068,7 +1236,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
         <section class="control-panel">
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
               预设曲线
             </div>
             <div class="preset-grid">
@@ -1081,7 +1248,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
               参数方程
             </div>
             <div class="param-fields">
@@ -1120,6 +1286,17 @@ input[type="color"].color-picker::-webkit-color-swatch {
           </div>
         </section>
       </div>
+
+      <div class="ai-section">
+        <div class="ai-header">
+          <span class="ai-title">AI 曲线分析</span>
+          <div class="ai-actions">
+            <button class="btn btn-primary" id="analyzeCurveBtn">分析</button>
+          </div>
+        </div>
+        <div class="ai-divider"></div>
+        <div class="ai-result" id="aiCurveResult"></div>
+      </div>
     </div>
 
     <!-- ========== VECTOR PANEL ========== -->
@@ -1128,7 +1305,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
         <section class="control-panel">
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
               向量 A
             </div>
             <div class="vector-coords-row">
@@ -1149,7 +1325,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>
               向量 B
             </div>
             <div class="vector-coords-row">
@@ -1170,7 +1345,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
           <div class="section-block">
             <div class="section-title">
-              <span class="section-dot" style="background:var(--md-sys-color-primary)"></span>
               运算
             </div>
             <div class="op-grid">
@@ -1189,6 +1363,17 @@ input[type="color"].color-picker::-webkit-color-swatch {
             <div class="viewer3d-info" id="vectorInfo">拖拽旋转 · 滚轮缩放</div>
           </div>
         </section>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-header">
+          <span class="ai-title">AI 向量分析</span>
+          <div class="ai-actions">
+            <button class="btn btn-primary" id="analyzeVecBtn">分析</button>
+          </div>
+        </div>
+        <div class="ai-divider"></div>
+        <div class="ai-result" id="aiVecResult"></div>
       </div>
     </div>
   </main>
@@ -1270,6 +1455,9 @@ function parseAndEval(expr, x) {
 const canvas = document.getElementById('graphCanvas');
 const ctx = canvas.getContext('2d');
 const coordsEl = document.getElementById('graphCoords');
+const coordDot = document.getElementById('coordDot');
+const coordFunc = document.getElementById('coordFunc');
+const coordValue = document.getElementById('coordValue');
 const legendEl = document.getElementById('graphLegend');
 
 // Offscreen cache for base graph (grid, axes, curves, special points)
@@ -1344,20 +1532,24 @@ function drawBaseGraph(fast) {
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, w, h);
 
+  // π mode detection
+  const isTrig = funcs.some(f => /(sin|cos|tan|cot|sec|csc|pi|π)/i.test(f.expr));
+  const piStep = isTrig ? piTickStep(xMax - xMin) : null;
+
   ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
-  const xStep = niceStep(xMax - xMin);
+  const xStep = isTrig ? piStep : niceStep(xMax - xMin);
   const yStep = niceStep(yMax - yMin);
   const xStart = Math.floor(xMin / xStep) * xStep;
   const yStart = Math.floor(yMin / yStep) * yStep;
 
   for (let x = xStart; x <= xMax + xStep; x += xStep) {
-    if (Math.abs(x) < xStep * 0.01) continue;
+    if (Math.abs(x) < xStep * 0.001) continue;
     const cx = toCanvasX(x);
     ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
   }
   for (let y = yStart; y <= yMax + yStep; y += yStep) {
-    if (Math.abs(y) < yStep * 0.01) continue;
+    if (Math.abs(y) < yStep * 0.001) continue;
     const cy = toCanvasY(y);
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
   }
@@ -1377,24 +1569,24 @@ function drawBaseGraph(fast) {
   ctx.beginPath(); ctx.moveTo(originX, 8); ctx.lineTo(originX, 2); ctx.lineTo(originX + 5, 5); ctx.fill();
 
   // Axis labels
-  ctx.fillStyle = labelColor;
-  ctx.font = '44px sans-serif';
+  ctx.fillStyle = axisColor;
+  ctx.font = 'bold 48px "Roboto Mono", Consolas, monospace';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText('x', w - 30, originY + 12);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('y', originX, 12);
+  ctx.fillText('y', originX, 16);
   ctx.textBaseline = 'top';
 
-  ctx.font = '38px sans-serif';
+  ctx.font = '600 36px "Roboto Mono", Consolas, monospace';
   ctx.fillStyle = tickColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   for (let x = xStart; x <= xMax + xStep; x += xStep) {
-    if (Math.abs(x) < xStep * 0.01) continue;
+    if (Math.abs(x) < xStep * 0.001) continue;
     const cx = toCanvasX(x);
-    ctx.fillText(formatNum(x), cx, originY + 12);
+    ctx.fillText(isTrig ? formatPiTick(x) : formatNum(x), cx, originY + 12);
   }
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
@@ -1406,9 +1598,9 @@ function drawBaseGraph(fast) {
 
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
-  ctx.fillStyle = tickColor;
-  ctx.font = '38px sans-serif';
-  ctx.fillText('O', originX - 12, originY + 12);
+  ctx.fillStyle = axisColor;
+  ctx.font = 'bold 40px "Roboto Mono", Consolas, monospace';
+  ctx.fillText('O', originX - 14, originY + 8);
 
   // Plot functions and collect points for snapping
   const colors = ['#0078D4','#E8453C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#3498DB'];
@@ -1419,12 +1611,14 @@ function drawBaseGraph(fast) {
     if (!f.expr.trim()) return;
     const color = f.color || colors[idx % colors.length];
     ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 5;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.beginPath();
     let started = false;
-    const steps = fast ? Math.min(300, Math.floor(w * 0.3)) : Math.max(300, Math.floor(w * 0.8));
+    const steps = fast ? Math.min(500, Math.floor(w * 0.6)) : Math.max(1000, Math.floor(w * 2));
+    const yMargin = Math.max(2, (yMax - yMin) * 0.12);
+    const jumpThreshold = (yMax - yMin) * 0.35;
     let prevY = NaN, prevX = NaN;
     const pts = [];
 
@@ -1432,7 +1626,7 @@ function drawBaseGraph(fast) {
       const x = xMin + (i / steps) * (xMax - xMin);
       const y = parseAndEval(f.expr, x);
       if (isNaN(y) || !isFinite(y)) { started = false; prevY = NaN; prevX = NaN; continue; }
-      if (y < yMin - 5 || y > yMax + 5) { started = false; prevY = NaN; prevX = NaN; continue; }
+      if (y < yMin - yMargin || y > yMax + yMargin) { started = false; prevY = NaN; prevX = NaN; continue; }
       const cx = toCanvasX(x), cy = toCanvasY(y);
       pts.push({ mx: cx, my: cy, x, y, color, expr: f.expr, funcIdx: idx });
       if (!fast) {
@@ -1447,7 +1641,7 @@ function drawBaseGraph(fast) {
       }
       if (!started) { ctx.moveTo(cx, cy); started = true; }
       else {
-        if (!isNaN(prevY) && Math.abs(y - prevY) > (yMax - yMin) * 0.5) {
+        if (!isNaN(prevY) && (Math.abs(y - prevY) > jumpThreshold || (prevY * y < 0 && Math.abs(y) > yMargin && Math.abs(prevY) > yMargin))) {
           ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx, cy);
         } else {
           ctx.lineTo(cx, cy);
@@ -1533,7 +1727,7 @@ function drawBaseGraph(fast) {
 
       if (isSpecial) {
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px sans-serif';
+        ctx.font = 'bold 20px "Roboto", "Noto Sans SC", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(sp.type === 'max' ? '▲' : '▼', sp.mx, sp.my + 1);
@@ -1579,44 +1773,45 @@ function drawSnapOverlay() {
   // 2. 圆环标记（白底 + 强调色描边 + 实心点）
   const accent = color || (type ? '#E8453C' : '#6750A4');
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx, my, 16, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = accent;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.arc(mx, my, 5.5, 0, Math.PI * 2); ctx.stroke();
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(mx, my, 13, 0, Math.PI * 2); ctx.stroke();
   ctx.fillStyle = accent;
-  ctx.beginPath(); ctx.arc(mx, my, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2); ctx.fill();
 
   // 3. 简洁标签卡片（毛玻璃 + 圆角矩形）
-  const coordText = `(${formatNum(x)}, ${formatNum(y)})`;
+  const fmt = n => formatPi(n);
+  const coordText = `(${fmt(x)}, ${fmt(y)})`;
   const hasType = !!type;
   const labelStr = hasType ? label : '';
-  const coordFont = '600 14px "Roboto Mono", Consolas, monospace';
-  const labelFont = '600 13px "Roboto", "Noto Sans SC", sans-serif';
+  const coordFont = 'bold 40px "Roboto Mono", Consolas, monospace';
+  const labelFont = 'bold 36px "Roboto", "Noto Sans SC", sans-serif';
 
   ctx.font = coordFont;
   const coordW = ctx.measureText(coordText).width;
   let labelW = 0;
   if (hasType) {
     ctx.font = labelFont;
-    labelW = ctx.measureText(labelStr).width + 10;
+    labelW = ctx.measureText(labelStr).width + 28;
   }
-  const padX = 10;
-  const cardH = 26;
+  const padX = 26;
+  const cardH = 68;
   const cardW = coordW + labelW + padX * 2;
 
   // 智能定位：优先右上，靠近边界自动翻转
-  let lx = mx + 12;
-  let ly = my - cardH - 10;
-  if (lx + cardW > w - 6) lx = mx - cardW - 12;
+  let lx = mx + 28;
+  let ly = my - cardH - 24;
+  if (lx + cardW > w - 6) lx = mx - cardW - 28;
   if (lx < 6) lx = 6;
-  if (ly < 6) ly = my + 12;
+  if (ly < 6) ly = my + 28;
   if (ly + cardH > h - 6) ly = h - cardH - 6;
 
   // 卡片背景（毛玻璃感）
-  ctx.fillStyle = isDark ? 'rgba(35,33,42,0.94)' : 'rgba(255,255,255,0.97)';
-  ctx.strokeStyle = isDark ? 'rgba(200,200,220,0.22)' : 'rgba(0,0,0,0.1)';
-  ctx.lineWidth = 1;
-  const rr = 6;
+  ctx.fillStyle = isDark ? 'rgba(32,30,38,0.96)' : 'rgba(255,255,255,0.98)';
+  ctx.strokeStyle = isDark ? 'rgba(200,200,220,0.18)' : 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 2;
+  const rr = 14;
   ctx.beginPath();
   ctx.moveTo(lx + rr, ly);
   ctx.lineTo(lx + cardW - rr, ly);
@@ -1675,6 +1870,80 @@ function formatNum(n) {
   return parseFloat(n.toFixed(4)).toString();
 }
 
+// π-based tick helpers
+function piTickStep(range) {
+  const rough = range / 6;
+  const divisors = [1/4, 1/3, 1/2, 1, 2, 3, 4, 6];
+  let best = Math.PI;
+  for (const d of divisors) {
+    const s = Math.PI * d;
+    const n = Math.abs(s - rough) / rough;
+    if (n < 0.4) best = s;
+  }
+  if (range > 20) best = Math.PI;
+  if (range > 50) best = 2 * Math.PI;
+  return best;
+}
+function formatPiTick(x) {
+  const frac = x / Math.PI;
+  const eps = 0.001;
+  function near(v) { return Math.abs(frac - v) < eps; }
+  function simple(n, d) {
+    if (n === 1 && d === 1) return 'π';
+    if (d === 1) return n + 'π';
+    if (n === 1) return 'π/' + d;
+    if (n === -1 && d === 1) return '-π';
+    if (d === 1) return n + 'π';
+    return n + 'π/' + d;
+  }
+  if (near(0)) return '0';
+  if (near(1)) return 'π';
+  if (near(-1)) return '-π';
+  if (near(2)) return '2π';
+  if (near(-2)) return '-2π';
+  if (near(0.5)) return 'π/2';
+  if (near(-0.5)) return '-π/2';
+  if (near(1/3)) return 'π/3';
+  if (near(-1/3)) return '-π/3';
+  if (near(1/4)) return 'π/4';
+  if (near(-1/4)) return '-π/4';
+  if (near(1/6)) return 'π/6';
+  if (near(-1/6)) return '-π/6';
+  if (near(3/2)) return '3π/2';
+  if (near(-3/2)) return '-3π/2';
+  if (near(5/4)) return '5π/4';
+  if (near(7/4)) return '7π/4';
+  if (near(5/6)) return '5π/6';
+  if (near(3)) return '3π';
+  if (near(4)) return '4π';
+  return formatNum(x);
+}
+function formatPi(n) {
+  const frac = n / Math.PI;
+  const eps = 0.001;
+  const ae = Math.abs(frac);
+  if (ae < eps) return '0';
+  if (Math.abs(frac - 1) < eps) return 'π';
+  if (Math.abs(frac + 1) < eps) return '-π';
+  if (Math.abs(frac - 0.5) < eps) return 'π/2';
+  if (Math.abs(frac + 0.5) < eps) return '-π/2';
+  if (Math.abs(frac - 1/3) < eps) return 'π/3';
+  if (Math.abs(frac + 1/3) < eps) return '-π/3';
+  if (Math.abs(frac - 1/4) < eps) return 'π/4';
+  if (Math.abs(frac + 1/4) < eps) return '-π/4';
+  if (Math.abs(frac - 1/6) < eps) return 'π/6';
+  if (Math.abs(frac + 1/6) < eps) return '-π/6';
+  if (Math.abs(frac - 3/2) < eps) return '3π/2';
+  if (Math.abs(frac + 3/2) < eps) return '-3π/2';
+  const rounded = Math.round(frac);
+  if (Math.abs(frac - rounded) < eps && rounded !== 0) {
+    if (rounded === 1) return 'π';
+    if (rounded === -1) return '-π';
+    return rounded + 'π';
+  }
+  return formatNum(n);
+}
+
 // Find zero of a function between x1 and x2 (bisection or derivative root)
 function findZero(expr, x1, x2, isDerivative) {
   const f = x => parseAndEval(expr, x);
@@ -1703,9 +1972,18 @@ function findZero(expr, x1, x2, isDerivative) {
 // ============================================================
 //  GRAPH EVENT HANDLERS
 // ============================================================
+function updateCoordsDisplay(label, value, color) {
+  if (coordFunc) coordFunc.textContent = label || '';
+  if (coordValue) coordValue.textContent = value || '(0.00, 0.00)';
+  if (coordDot) {
+    coordDot.style.background = color || 'transparent';
+    coordDot.classList.toggle('active', !!color);
+  }
+}
+
 canvas.addEventListener('mouseleave', () => {
   if (snapPoint) { snapPoint = null; redrawOverlay(); }
-  coordsEl.textContent = '(0.00, 0.00)';
+  updateCoordsDisplay('', '(0.00, 0.00)', null);
 });
 canvas.addEventListener('mousedown', e => {
   isDragging = true;
@@ -1748,15 +2026,19 @@ window.addEventListener('mousemove', e => {
     if (best && bestDist < threshold) {
       const snapChanged = !snapPoint || snapPoint.x !== best.x || snapPoint.y !== best.y;
       snapPoint = best;
+      const funcIdx = typeof best.funcIdx === 'number' ? best.funcIdx :
+        funcs.findIndex(f => f.expr === best.expr);
+      const funcLabel = funcIdx >= 0 ? `f${funcIdx + 1}` : '';
+      const value = `(${formatPi(best.x)}, ${formatPi(best.y)})`;
       if (best.isSpecial) {
-        coordsEl.textContent = `${best.label} (${formatNum(best.x)}, ${formatNum(best.y)})`;
+        updateCoordsDisplay(funcLabel ? `${funcLabel} · ${best.label}` : best.label, value, best.color);
       } else {
-        coordsEl.textContent = `(${formatNum(best.x)}, ${formatNum(best.y)})  [snap]`;
+        updateCoordsDisplay(funcLabel || best.expr, value, best.color);
       }
       if (snapChanged) redrawOverlay();
     } else {
       if (snapPoint) { snapPoint = null; redrawOverlay(); }
-      coordsEl.textContent = `(${formatNum(mathX)}, ${formatNum(mathY)})`;
+      updateCoordsDisplay('', `(${formatPi(mathX)}, ${formatPi(mathY)})`, null);
     }
     mouseX = cx;
     mouseY = cy;
@@ -1907,17 +2189,28 @@ document.getElementById('funcRows').addEventListener('click', e => {
     const colors = ['#0078D4','#E8453C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#3498DB'];
     const idx = document.querySelectorAll('#funcRows > .func-row').length;
     const div = document.createElement('div');
-    div.className = 'func-row';
+    div.className = 'func-row selected';
     div.dataset.func = idx;
     div.innerHTML = `
-      <span class="func-sel-dot"></span>
       <label>f(x)=</label>
-      <input type="text" class="func-input" value="x" placeholder="输入函数...">
+      <div class="func-input-wrap">
+        <input type="text" class="func-input" value="x" placeholder="输入函数...">
+      </div>
       <input type="color" class="color-picker" value="${colors[idx % colors.length]}">
       <button class="btn btn-icon btn-outline remove-func" title="删除">✕</button>
     `;
+    // 取消其他行的选中状态
+    document.querySelectorAll('#funcRows > .func-row').forEach(function(r) { r.classList.remove('selected'); });
     document.getElementById('funcRows').appendChild(div);
     funcs.push({ expr: 'x', color: colors[idx % colors.length] });
+    // 清除残留的吸附点和坐标颜色
+    if (typeof snapPoint !== 'undefined' && snapPoint) {
+      snapPoint = null;
+      if (typeof redrawOverlay === 'function') redrawOverlay();
+    }
+    if (typeof updateCoordsDisplay === 'function') {
+      updateCoordsDisplay('', '(0.00, 0.00)', null);
+    }
     drawGraph();
     div.querySelector('.func-input').focus();
   }
@@ -2041,6 +2334,20 @@ syncRangeInputs();
 window.addEventListener('resize', resizeCanvas);
 setTimeout(resizeCanvas, 100);
 
+// Sidebar collapse
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('collapseBtn');
+  if (!sidebar || !btn) return;
+  const saved = localStorage.getItem('math-studio-sidebar');
+  if (saved === 'collapsed') sidebar.classList.add('collapsed');
+  btn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('math-studio-sidebar', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+    setTimeout(() => { if (typeof resizeCanvas === 'function') resizeCanvas(); }, 300);
+  });
+})();
+
 // Theme toggle
 (function() {
   const toggle = document.getElementById('themeToggle');
@@ -2071,12 +2378,21 @@ setTimeout(resizeCanvas, 100);
 (function() {
   var input = document.getElementById('apiKeyInput');
   var dot = document.getElementById('apiStatusDot');
+  var header = document.getElementById('apiHeader');
+  var apiBox = document.getElementById('sidebarApi');
   if (!input || !dot) return;
   input.value = window.__MATH_STUDIO_API_KEY || '';
   input.addEventListener('input', function() {
     window.__MATH_STUDIO_API_KEY = input.value.trim();
     dot.className = 'api-status-dot';
   });
+  if (header && apiBox) {
+    header.addEventListener('click', function() {
+      apiBox.classList.toggle('open');
+    });
+    // 默认折叠；如果未配置密钥，自动展开提醒用户
+    if (!input.value.trim()) apiBox.classList.add('open');
+  }
   async function checkAPI() {
     var key = window.__MATH_STUDIO_API_KEY;
     if (!key) { dot.className = 'api-status-dot error'; return; }
@@ -2364,7 +2680,7 @@ if (activeTab) {
   if (activeTab.dataset.tab === 'vector') setTimeout(drawVectors, 100);
 }
 
-// ---- Shared AI helpers ----
+// ---- AI Analysis ----
 async function callDeepSeek(messages) {
   const apiKey = window.__MATH_STUDIO_API_KEY;
   if (!apiKey) throw new Error('请在侧边栏输入 DeepSeek API Key');
@@ -2380,263 +2696,115 @@ async function callDeepSeek(messages) {
 
 function setAIResult(el, loading) {
   el.className = loading ? 'ai-result loading' : 'ai-result';
-  if (loading) el.textContent = 'AI 分析中...';
+  if (loading) el.textContent = '正在分析...';
 }
 
-// 美化 AI 输出：去除 LaTeX 公式标记、压缩空行、π符号、紫色关键词、列表化
-function formatAIResult(text) {
-  var s = String(text);
-  // 1. 统一换行
-  s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  // 2. 转义 HTML
+function formatAI(text) {
+  var s = String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-  // 3. LaTeX → 可读符号
-  // 公式定界符 \( \) \[ \] $$
-  s = s.replace(/\\\(\s*/g, ' ').replace(/\s*\\\)/g, ' ');
-  s = s.replace(/\\\[\s*/g, ' ').replace(/\s*\\\]/g, ' ');
-  s = s.replace(/\$\$/g, ' ');
-  s = s.replace(/\\\$/g, '$');
-  // \frac{a}{b} → (a)/(b)
-  function replFrac(m, a, b) { return '(' + a + ')/(' + b + ')'; }
-  for (var i = 0; i < 3; i++) {
-    s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, replFrac);
-  }
-  // \sqrt{x} → √(x)
-  s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, function(m, a) { return '√(' + a + ')'; });
+  // 去掉 --- 分隔线和多余空行
+  s = s.replace(/^---+$/gm, '').replace(/\n{3,}/g, '\n\n');
+  // LaTeX 定界符
+  s = s.replace(/\\\(\s*/g, '').replace(/\s*\\\)/g, '');
+  s = s.replace(/\\\[\s*/g, '').replace(/\s*\\\]/g, '');
+  s = s.replace(/\$\$/g, '');
+  // \frac{a}{b}
+  for (var i=0;i<3;i++) s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '$1/$2');
+  s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, '√($1)');
   s = s.replace(/\\sqrt\s+([a-zA-Z0-9.]+)/g, '√$1');
-  // \text{...} \mathrm{...} 等文本包裹
-  s = s.replace(/\\(?:text|mathrm|mathbb|textbf|mathit|mathsf|operatorname|mathcal)\s*\{([^{}]*)\}/g, '$1');
-  // \left \right \big \Big 等尺寸修饰
-  s = s.replace(/\\left\s*/g, '').replace(/\\right\s*/g, '');
-  s = s.replace(/\\[bB]ig[lr]?\s*/g, '');
-  s = s.replace(/\\displaystyle\s*/g, '').replace(/\\limits\s*/g, '').replace(/\\nolimits\s*/g, '');
-
-  // 希腊字母与数学符号映射（仅匹配 \word 形式）
-  var symbols = {
-    'pi': 'π', 'alpha': 'α', 'beta': 'β', 'gamma': 'γ', 'delta': 'δ', 'Delta': 'Δ',
-    'epsilon': 'ε', 'varepsilon': 'ε', 'zeta': 'ζ', 'eta': 'η', 'theta': 'θ', 'Theta': 'Θ',
-    'iota': 'ι', 'kappa': 'κ', 'lambda': 'λ', 'Lambda': 'Λ', 'mu': 'μ', 'nu': 'ν',
-    'xi': 'ξ', 'Xi': 'Ξ', 'omicron': 'ο', 'Pi': 'Π', 'rho': 'ρ', 'varrho': 'ρ',
-    'sigma': 'σ', 'Sigma': 'Σ', 'tau': 'τ', 'upsilon': 'υ', 'phi': 'φ', 'varphi': 'φ', 'Phi': 'Φ',
-    'chi': 'χ', 'psi': 'ψ', 'Psi': 'Ψ', 'omega': 'ω', 'Omega': 'Ω',
-    'pm': '±', 'mp': '∓', 'times': '×', 'div': '÷', 'cdot': '·', 'ast': '∗',
-    'leq': '≤', 'le': '≤', 'geq': '≥', 'ge': '≥', 'neq': '≠', 'ne': '≠',
-    'approx': '≈', 'equiv': '≡', 'sim': '∼', 'cong': '≅', 'propto': '∝',
-    'infty': '∞', 'partial': '∂', 'nabla': '∇', 'forall': '∀', 'exists': '∃',
-    'notin': '∉', 'subset': '⊂', 'supset': '⊃', 'subseteq': '⊆', 'supseteq': '⊇',
-    'cup': '∪', 'cap': '∩', 'emptyset': '∅', 'sum': 'Σ', 'prod': 'Π', 'int': '∫', 'oint': '∮',
-    'rightarrow': '→', 'to': '→', 'Rightarrow': '⇒', 'implies': '⇒',
-    'leftarrow': '←', 'Leftarrow': '⇐', 'leftrightarrow': '↔', 'Leftrightarrow': '⇔', 'iff': '⇔',
-    'uparrow': '↑', 'downarrow': '↓', 'mapsto': '↦',
-    'circ': '∘', 'bullet': '•', 'dagger': '†', 'ddagger': '‡',
-    'angle': '∠', 'perp': '⊥', 'parallel': '∥', 'mid': '∣',
-    'otimes': '⊗', 'oplus': '⊕', 'hbar': 'ℏ', 'ell': 'ℓ',
-    'quad': ' ', 'qquad': '  '
-  };
-  s = s.replace(/\\([a-zA-Z]+)/g, function(m, name) {
-    return symbols.hasOwnProperty(name) ? symbols[name] : m;
-  });
-
-  // 4. π 相关数字/字面替换
-  s = s.replace(/3\.1415926?\d*/g, 'π');
-  s = s.replace(/3\.14(?!5)\d*/g, 'π');
-  s = s.replace(/\bpi\b/gi, 'π');
-  s = s.replace(/(\d)\s*pi\b/gi, '$1π');
-
-  // 5. 移除剩余 LaTeX 空白控制符
-  s = s.replace(/\\[,;:!]/g, ' ');
-  s = s.replace(/\\ /g, ' ');
+  s = s.replace(/\\(?:text|mathrm|mathbb|textbf|mathit|operatorname)\s*\{([^{}]*)\}/g, '$1');
+  s = s.replace(/\\left\s*/g,'').replace(/\\right\s*/g,'');
+  s = s.replace(/\\displaystyle\s*/g,'').replace(/\\limits\s*/g,'');
+  s = s.replace(/\\[,;:!]/g,' ');
+  // 希腊符号
+  var sym = { pi:'π',alpha:'α',beta:'β',gamma:'γ',delta:'δ',theta:'θ',Theta:'Θ',lambda:'λ',Lambda:'Λ',mu:'μ',sigma:'σ',Sigma:'Σ',omega:'ω',Omega:'Ω',phi:'φ',Phi:'Φ',infty:'∞',partial:'∂',pm:'±',times:'×',div:'÷',cdot:'·',leq:'≤',geq:'≥',neq:'≠',approx:'≈',rightarrow:'→',to:'→',Rightarrow:'⇒',leftarrow:'←' };
+  s = s.replace(/\\([a-zA-Z]+)/g, function(m,n){ return sym[n]||m; });
   s = s.replace(/\\/g, '');
-
-  // 6. Markdown 加粗/斜体
+  // Markdown bold
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-
-  // 7. 关键词紫色加粗（占位符策略，避免嵌套重复替换）
-  var keywords = [
-    '函数类型','单调性','奇偶性','周期性','渐近线','零点','极值点','极大值','极小值',
-    '最大值','最小值','定义域','值域','对称性','截距','斜率','导数','积分',
-    '向量','点积','叉积','数量积','向量积','模长','夹角','垂直','平行','投影',
-    '空间形态','螺旋','曲线','参数方程','几何意义','应用场景','计算方法',
-    '正弦','余弦','正切','双曲','指数','对数','幂函数','多项式','有理函数',
-    '驻点','拐点','凹凸性','收敛','发散','极限','连续','可导','可微','极值'
-  ];
-  keywords.sort(function(a, b) { return b.length - a.length; });
-  var kwMap = {};
-  keywords.forEach(function(kw, idx) {
-    var ph = '\x00KW' + idx + '\x00';
-    kwMap[ph] = kw;
-    s = s.replace(new RegExp(kw, 'g'), ph);
-  });
-
-  // 8. 压缩空白：行内多空格、行首尾、连续空行
-  s = s.replace(/[ \t]{2,}/g, ' ');
-  s = s.split('\n').map(function(l) { return l.trim(); }).join('\n');
-  s = s.replace(/\n{2,}/g, '\n');
-
-  // 9. 还原关键词为紫色加粗 span
-  Object.keys(kwMap).forEach(function(ph) {
-    s = s.replace(new RegExp(ph, 'g'), '<span class="kw">' + kwMap[ph] + '</span>');
-  });
-
-  // 10. 按行分段，识别有序/无序列表
-  var lines = s.split('\n').filter(function(l) { return l.trim(); });
-  var html = [];
-  var listType = null;
-  var listItems = [];
-  function flushList() {
-    if (listType && listItems.length) {
-      html.push('<' + listType + '>' + listItems.map(function(it) { return '<li>' + it + '</li>'; }).join('') + '</' + listType + '>');
-      listType = null;
-      listItems = [];
-    }
-  }
+  // 关键数学词着色
+  var kw = ['单调递增','单调递减','单调性','奇函数','偶函数','奇偶性','周期性','极大值','极小值','极值点','零点','渐近线','定义域','值域','对称性','截距','斜率','导数','振幅','周期','光滑','连续','分段','正弦函数','余弦函数','正切函数','指数函数','对数函数','幂函数','三角函数','反函数','复合函数','有界','无界'];
+  kw.sort(function(a,b){return b.length-a.length;});
+  var map = {}; kw.forEach(function(k,i){ var ph='\x00'+i+'\x00'; map[ph]=k; s=s.replace(new RegExp(k,'g'),ph); });
+  Object.keys(map).forEach(function(ph){ s=s.replace(new RegExp(ph,'g'),'<em>'+map[ph]+'</em>'); });
+  // 处理标题行（## 或 ### 开头）
+  s = s.replace(/^#{1,3}\s+(.+)$/gm, '<span class="ai-heading">$1</span>');
+  // 处理列表行（- 或 * 开头）
+  var lines = s.split('\n');
+  var html = [], inList = false;
   lines.forEach(function(line) {
-    var t = line.trim();
-    var olMatch = t.match(/^(\d+)[.、)]\s*(.+)/);
-    var ulMatch = t.match(/^[-*•·]\s*(.+)/);
-    if (olMatch) {
-      if (listType !== 'ol') { flushList(); listType = 'ol'; }
-      listItems.push(olMatch[2]);
-    } else if (ulMatch) {
-      if (listType !== 'ul') { flushList(); listType = 'ul'; }
-      listItems.push(ulMatch[1]);
-    } else {
-      flushList();
-      html.push('<p>' + t + '</p>');
-    }
+    var t = line.trim(); if (!t) { if (inList) { html.push('</ul>'); inList = false; } return; }
+    var m = t.match(/^[-*]\s+(.+)/);
+    if (m) { if (!inList) { html.push('<ul>'); inList = true; } html.push('<li>'+m[1]+'</li>'); return; }
+    if (inList) { html.push('</ul>'); inList = false; }
+    html.push('<p>'+t+'</p>');
   });
-  flushList();
+  if (inList) html.push('</ul>');
   return html.join('');
 }
 
-// ---- Graph AI Analysis ----
-async function analyzeGraphFunctions(all) {
-  var resultEl = document.getElementById('aiGraphResult');
-  setAIResult(resultEl, true);
+// 分析选中函数
+document.getElementById('analyzeGraphBtn').addEventListener('click', async () => {
+  const el = document.getElementById('aiGraphResult');
+  setAIResult(el, true);
   try {
-    var funcExprs = [];
-    var selectedExpr = '';
-    document.querySelectorAll('#funcRows .func-row').forEach(function(row) {
-      var e = row.querySelector('.func-input').value.trim();
-      if (e) funcExprs.push(e);
-      if (row.classList.contains('selected') && e) selectedExpr = e;
+    var selected = '';
+    document.querySelectorAll('#funcRows .func-row').forEach(row => {
+      if (row.classList.contains('selected')) { var v = row.querySelector('.func-input').value.trim(); if (v) selected = v; }
     });
-    if (!funcExprs.length) throw new Error('请先定义函数');
-    if (!selectedExpr) selectedExpr = funcExprs[0];
-    // 附加视图范围与特殊点信息，弥补无图像输入
-    var rangeInfo = '当前视图范围：x ∈ [' + xMin + ', ' + xMax + ']，y ∈ [' + yMin + ', ' + yMax + ']。';
-    var spInfo = '';
-    if (typeof specialPoints !== 'undefined' && specialPoints && specialPoints.length) {
-      var spList = specialPoints.slice(0, 12).map(function(p) {
-        var typeName = p.type === 'max' ? '极大值' : p.type === 'min' ? '极小值' :
-          p.type === 'root' ? '零点' : p.type === 'yintercept' ? 'y轴截距' : p.type;
-        return typeName + '(' + formatNum(p.x) + ', ' + formatNum(p.y) + ')';
-      });
-      spInfo = '图中检测到的关键点：' + spList.join('、') + '。';
-    }
-    var prompt;
-    if (all) {
-      prompt = '请分析以下数学函数：' + funcExprs.map(function(f,i){return 'f'+i+'(x)='+f}).join('；') + '。' + rangeInfo + spInfo +
-        '请分别分析每个函数的类型、关键特征(单调性、奇偶性、周期性)、零点、极值点，并比较它们之间的关系。用中文回答。';
-    } else {
-      prompt = '请分析以下数学函数 f(x)=' + selectedExpr + '。' + rangeInfo + spInfo +
-        '包括：1.函数类型；2.关键特征(单调性、奇偶性、周期性、渐近线)；3.零点、极值点；4.整体形态。用中文回答。';
-    }
-    var result = await callDeepSeek([{ role: 'user', content: prompt }]);
-    resultEl.className = 'ai-result';
-    resultEl.innerHTML = formatAIResult(result);
-  } catch(err) {
-    resultEl.className = 'ai-result';
-    resultEl.innerHTML = '<span style="color:var(--md-sys-color-error);font-weight:600">分析失败</span><br>' + err.message;
-  }
-}
-
-var analyzeGraphBtn = document.getElementById('analyzeGraphBtn');
-var analyzeGraphAllBtn = document.getElementById('analyzeGraphAllBtn');
-if (analyzeGraphBtn) analyzeGraphBtn.addEventListener('click', function() { analyzeGraphFunctions(false); });
-if (analyzeGraphAllBtn) analyzeGraphAllBtn.addEventListener('click', function() { analyzeGraphFunctions(true); });
-
-// ---- Curve AI Analysis ----
-function addCurveAISection() {
-  var panel = document.getElementById('panel-curve3d');
-  if (!panel || panel.querySelector('.curve-ai-section')) return;
-  var workspace = panel.querySelector('.workspace');
-  if (!workspace) return;
-  var section = document.createElement('div');
-  section.className = 'curve-ai-section ai-section';
-  section.style.cssText = 'margin-top:0';
-  section.innerHTML = '<div class="ai-header">' +
-    '<div class="section-title"><span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>AI 分析曲线</div>' +
-    '<div class="ai-actions"><button class="btn btn-primary" id="analyzeCurveBtn">分析当前曲线</button></div>' +
-    '</div><div class="ai-result" id="aiCurveResult" style="min-height:50px"></div>';
-  workspace.insertAdjacentElement('afterend', section);
-
-  document.getElementById('analyzeCurveBtn').addEventListener('click', async function() {
-    var resultEl = document.getElementById('aiCurveResult');
-    setAIResult(resultEl, true);
-    try {
-      var x = document.getElementById('curveX').value, y = document.getElementById('curveY').value, z = document.getElementById('curveZ').value;
-      var tMin = document.getElementById('curveTMin').value, tMax = document.getElementById('curveTMax').value;
-      var prompt = '请分析以下三维参数曲线：x(t)=' + x + ', y(t)=' + y + ', z(t)=' + z + ', t∈[' + tMin + ',' + tMax + ']。请描述曲线的空间形态、类型、对称性、周期性和特殊点。用中文回答。';
-      var result = await callDeepSeek([{ role: 'user', content: prompt }]);
-      resultEl.className = 'ai-result';
-      resultEl.textContent = result;
-    } catch(err) {
-      resultEl.className = 'ai-result';
-      resultEl.innerHTML = '<span style="color:var(--md-sys-color-error);font-weight:600">分析失败</span><br>' + err.message;
-    }
-  });
-}
-
-// ---- Vector AI Analysis ----
-function addVectorAISection() {
-  var panel = document.getElementById('panel-vector');
-  if (!panel || panel.querySelector('.vector-ai-section')) return;
-  var workspace = panel.querySelector('.workspace');
-  if (!workspace) return;
-  var section = document.createElement('div');
-  section.className = 'vector-ai-section ai-section';
-  section.style.cssText = 'margin-top:0';
-  section.innerHTML = '<div class="ai-header">' +
-    '<div class="section-title"><span class="section-dot" style="background:var(--md-sys-color-tertiary)"></span>AI 分析向量</div>' +
-    '<div class="ai-actions"><button class="btn btn-primary" id="analyzeVecBtn">分析向量运算</button></div>' +
-    '</div><div class="ai-result" id="aiVecResult" style="min-height:50px"></div>';
-  workspace.insertAdjacentElement('afterend', section);
-
-  document.getElementById('analyzeVecBtn').addEventListener('click', async function() {
-    var resultEl = document.getElementById('aiVecResult');
-    setAIResult(resultEl, true);
-    try {
-      var a = [parseFloat(document.getElementById('vecAx').value), parseFloat(document.getElementById('vecAy').value), parseFloat(document.getElementById('vecAz').value)];
-      var b = [parseFloat(document.getElementById('vecBx').value), parseFloat(document.getElementById('vecBy').value), parseFloat(document.getElementById('vecBz').value)];
-      var opEl = document.querySelector('.op-chip.active');
-      var op = opEl ? opEl.textContent : 'A+B';
-      var prompt = '请分析以下三维向量运算：A=(' + a.join(',') + '), B=(' + b.join(',') + ')，运算为 ' + op + '。请解释该运算的几何意义、计算方法、应用场景。用中文回答。';
-      var result = await callDeepSeek([{ role: 'user', content: prompt }]);
-      resultEl.className = 'ai-result';
-      resultEl.textContent = result;
-    } catch(err) {
-      resultEl.className = 'ai-result';
-      resultEl.innerHTML = '<span style="color:var(--md-sys-color-error);font-weight:600">分析失败</span><br>' + err.message;
-    }
-  });
-}
-
-// Inject AI sections on first tab switch for curve/vector
-var origNavClick = document.querySelector('.nav-item') ? null : null;
-document.querySelectorAll('.nav-item').forEach(function(item) {
-  item.addEventListener('click', function() {
-    var tab = item.dataset.tab;
-    if (tab === 'curve3d') setTimeout(addCurveAISection, 100);
-    if (tab === 'vector') setTimeout(addVectorAISection, 100);
-  });
+    if (!selected) throw new Error('请先选中一个函数');
+    const result = await callDeepSeek([{ role: 'user', content:
+      '像数学老师一样讲解函数 f(x)='+selected+'。按此结构输出：\n- 函数类型\n- 定义域\n- 单调性与奇偶性\n- 零点与极值\n- 图像大致形状\n每点一句话，不要客套话和总结。用**重点词**加粗。' }]);
+    el.className = 'ai-result'; el.innerHTML = formatAI(result);
+  } catch(err) { el.className = 'ai-result'; el.innerHTML = '<p>分析失败：'+err.message+'</p>'; }
 });
 
-// Init
-setTimeout(addCurveAISection, 200);
-setTimeout(addVectorAISection, 200);
+// 分析全部函数
+document.getElementById('analyzeGraphAllBtn').addEventListener('click', async () => {
+  const el = document.getElementById('aiGraphResult');
+  setAIResult(el, true);
+  try {
+    const exprs = [];
+    document.querySelectorAll('#funcRows .func-row .func-input').forEach(inp => {
+      const v = inp.value.trim(); if (v) exprs.push(v);
+    });
+    if (!exprs.length) throw new Error('请先定义函数');
+    const result = await callDeepSeek([{ role: 'user', content:
+      '像数学老师一样对比讲解以下函数：'+exprs.map((e,i)=>'f'+(i+1)+'(x)='+e).join('；')+
+      '。每个函数说明类型、定义域、单调性、零点、极值。最后一两句比较异同。不要客套话和开场白。用**重点词**加粗。' }]);
+    el.className = 'ai-result'; el.innerHTML = formatAI(result);
+  } catch(err) { el.className = 'ai-result'; el.innerHTML = '<p>分析失败：'+err.message+'</p>'; }
+});
+
+// 分析3D曲线
+document.getElementById('analyzeCurveBtn').addEventListener('click', async () => {
+  const el = document.getElementById('aiCurveResult');
+  setAIResult(el, true);
+  try {
+    const x = document.getElementById('curveX').value;
+    const y = document.getElementById('curveY').value;
+    const z = document.getElementById('curveZ').value;
+    const result = await callDeepSeek([{ role: 'user', content:
+      '讲解三维参数曲线 x(t)='+x+', y(t)='+y+', z(t)='+z+'。说明：曲线类型、空间形态、特殊点。每点简洁，不要客套话。用**重点词**加粗。' }]);
+    el.className = 'ai-result'; el.innerHTML = formatAI(result);
+  } catch(err) { el.className = 'ai-result'; el.innerHTML = '<p>分析失败：'+err.message+'</p>'; }
+});
+
+// 分析向量
+document.getElementById('analyzeVecBtn').addEventListener('click', async () => {
+  const el = document.getElementById('aiVecResult');
+  setAIResult(el, true);
+  try {
+    const a = [document.getElementById('vecAx').value, document.getElementById('vecAy').value, document.getElementById('vecAz').value];
+    const b = [document.getElementById('vecBx').value, document.getElementById('vecBy').value, document.getElementById('vecBz').value];
+    const opEl = document.querySelector('.op-chip.active');
+    const op = opEl ? opEl.textContent : 'A+B';
+    const result = await callDeepSeek([{ role: 'user', content:
+      '讲解三维向量运算 '+op+'，A=('+a.join(',')+')，B=('+b.join(',')+')。说明：几何意义、计算方法。简洁直接，不要客套话。用**重点词**加粗。' }]);
+    el.className = 'ai-result'; el.innerHTML = formatAI(result);
+  } catch(err) { el.className = 'ai-result'; el.innerHTML = '<p>分析失败：'+err.message+'</p>'; }
+});
+
 </script>
 </body>
 </html>
