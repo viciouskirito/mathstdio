@@ -147,7 +147,6 @@ body {
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-xs) var(--space-xs) var(--space-lg);
-  position: relative;
 }
 .sidebar.collapsed .sidebar-brand { gap: 0; padding: var(--space-xs) 0 var(--space-md); justify-content: center; }
 .sidebar.collapsed .brand-text { display: none; }
@@ -184,28 +183,6 @@ body {
   letter-spacing: 0.3px;
   white-space: nowrap;
 }
-
-.collapse-btn {
-  position: absolute;
-  right: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--md-sys-color-on-surface-variant);
-  transition: background 0.2s, transform 0.25s var(--ease-emphasized);
-  z-index: 2;
-}
-.collapse-btn:hover { background: var(--md-sys-color-surface-variant); }
-.collapse-btn svg { width: 16px; height: 16px; transition: transform 0.25s var(--ease-emphasized); }
-.sidebar.collapsed .collapse-btn svg { transform: rotate(180deg); }
 
 .sidebar-nav {
   display: flex;
@@ -278,8 +255,30 @@ body {
   white-space: nowrap;
   overflow: hidden;
 }
-.sidebar.collapsed .sidebar-footer { justify-content: center; }
-.sidebar.collapsed .sidebar-footer span { display: none; }
+.sidebar.collapsed .sidebar-footer { flex-direction: column; gap: 10px; justify-content: center; }
+.sidebar.collapsed .sidebar-footer > span { display: none; }
+
+.collapse-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.collapse-btn:hover {
+  background: var(--md-sys-color-surface-variant);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-primary);
+}
+.collapse-btn svg { width: 20px; height: 20px; transition: transform 0.25s var(--ease-emphasized); }
+.sidebar.collapsed .collapse-btn svg { transform: rotate(180deg); }
 
 .sidebar-api {
   padding: 0;
@@ -606,6 +605,16 @@ input[type="color"].color-picker::-webkit-color-swatch {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
 }
+.func-row .btn-icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  font-weight: 500;
+  min-height: 0;
+  flex-shrink: 0;
+}
 .func-row label {
   font-family: 'Roboto Mono', Consolas, monospace;
   font-size: 15px;
@@ -838,6 +847,47 @@ input[type="color"].color-picker::-webkit-color-swatch {
   border: 1px solid rgba(255,255,255,0.06);
   white-space: nowrap;
   letter-spacing: 0.2px;
+}
+
+/* fullscreen */
+.fullscreen-btn {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+.fullscreen-btn:hover { background: rgba(0,0,0,0.55); border-color: rgba(255,255,255,0.35); }
+.fullscreen-btn svg { width: 18px; height: 18px; }
+.graph-wrapper.fullscreen,
+.viewer3d-wrapper.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  border-radius: 0;
+  background: var(--viewer-bg);
+}
+.graph-wrapper.fullscreen canvas,
+.viewer3d-wrapper.fullscreen canvas { border-radius: 0; }
+.fullscreen-hint {
+  position: absolute;
+  bottom: var(--space-md);
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  pointer-events: none;
 }
 
 /* ========== Vector Panel ========== */
@@ -1080,11 +1130,6 @@ input[type="color"].color-picker::-webkit-color-swatch {
         <div class="brand-title">Math Studio</div>
         <div class="brand-subtitle">可视化数学实验室</div>
       </div>
-      <button class="collapse-btn" id="collapseBtn" title="收起侧边栏">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -1142,6 +1187,11 @@ input[type="color"].color-picker::-webkit-color-swatch {
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
           </svg>
         </span>
+      </button>
+      <button class="collapse-btn" id="collapseBtn" title="收起侧边栏">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
       </button>
       <span>v2.0</span>
     </div>
@@ -1206,6 +1256,14 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
         <section class="visual-panel">
           <div class="graph-wrapper">
+            <button class="fullscreen-btn" title="全屏">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 3 21 3 21 9"/>
+                <polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/>
+                <line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+            </button>
             <canvas id="graphCanvas"></canvas>
             <div class="graph-coords" id="graphCoords">
               <span class="coord-dot" id="coordDot"></span>
@@ -1281,6 +1339,14 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
         <section class="visual-panel">
           <div class="viewer3d-wrapper">
+            <button class="fullscreen-btn" title="全屏">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 3 21 3 21 9"/>
+                <polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/>
+                <line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+            </button>
             <canvas id="curveCanvas"></canvas>
             <div class="viewer3d-info" id="curveInfo">拖拽旋转 · 滚轮缩放</div>
           </div>
@@ -1359,6 +1425,14 @@ input[type="color"].color-picker::-webkit-color-swatch {
 
         <section class="visual-panel">
           <div class="viewer3d-wrapper">
+            <button class="fullscreen-btn" title="全屏">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 3 21 3 21 9"/>
+                <polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/>
+                <line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+            </button>
             <canvas id="vectorCanvas"></canvas>
             <div class="viewer3d-info" id="vectorInfo">拖拽旋转 · 滚轮缩放</div>
           </div>
@@ -1469,6 +1543,7 @@ let funcs = [];
 let xMin = -10, xMax = 10;
 let yMin = -7, yMax = 7;
 let isDragging = false, dragStartX, dragStartY;
+let isScaling = false, scaleCenterX, scaleCenterY, scaleStartYMin, scaleStartYMax, scaleStartXMin, scaleStartXMax;
 let mouseX = 0, mouseY = 0, snapPoint = null;
 let plottedPoints = [], specialPoints = [];
 
@@ -1616,17 +1691,23 @@ function drawBaseGraph(fast) {
     ctx.lineCap = 'round';
     ctx.beginPath();
     let started = false;
-    const steps = fast ? Math.min(500, Math.floor(w * 0.6)) : Math.max(1000, Math.floor(w * 2));
-    const yMargin = Math.max(2, (yMax - yMin) * 0.12);
-    const jumpThreshold = (yMax - yMin) * 0.35;
+    const steps = fast ? Math.min(600, Math.floor(w * 0.6)) : Math.max(1500, Math.floor(w * 2.5));
+    const yMargin = Math.max(3, (yMax - yMin) * 0.15);
+    const jumpThreshold = (yMax - yMin) * 0.25;
     let prevY = NaN, prevX = NaN;
     const pts = [];
 
     for (let i = 0; i <= steps; i++) {
       const x = xMin + (i / steps) * (xMax - xMin);
       const y = parseAndEval(f.expr, x);
-      if (isNaN(y) || !isFinite(y)) { started = false; prevY = NaN; prevX = NaN; continue; }
-      if (y < yMin - yMargin || y > yMax + yMargin) { started = false; prevY = NaN; prevX = NaN; continue; }
+      if (isNaN(y) || !isFinite(y)) {
+        if (started) { ctx.stroke(); ctx.beginPath(); }
+        started = false; prevY = NaN; prevX = NaN; continue;
+      }
+      if (y < yMin - yMargin || y > yMax + yMargin) {
+        if (started) { ctx.stroke(); ctx.beginPath(); }
+        started = false; prevY = NaN; prevX = NaN; continue;
+      }
       const cx = toCanvasX(x), cy = toCanvasY(y);
       pts.push({ mx: cx, my: cy, x, y, color, expr: f.expr, funcIdx: idx });
       if (!fast) {
@@ -1986,13 +2067,23 @@ canvas.addEventListener('mouseleave', () => {
   updateCoordsDisplay('', '(0.00, 0.00)', null);
 });
 canvas.addEventListener('mousedown', e => {
-  isDragging = true;
   const rect = canvas.getBoundingClientRect();
   const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
-  dragStartX = (e.clientX - rect.left) * sx;
-  dragStartY = (e.clientY - rect.top) * sy;
-  mouseX = dragStartX;
-  mouseY = dragStartY;
+  if (e.shiftKey) {
+    isScaling = true;
+    scaleCenterX = toMathX((e.clientX - rect.left) * sx);
+    scaleCenterY = toMathY((e.clientY - rect.top) * sy);
+    scaleStartXMin = xMin; scaleStartXMax = xMax;
+    scaleStartYMin = yMin; scaleStartYMax = yMax;
+    dragStartX = (e.clientX - rect.left) * sx;
+    dragStartY = (e.clientY - rect.top) * sy;
+  } else {
+    isDragging = true;
+    dragStartX = (e.clientX - rect.left) * sx;
+    dragStartY = (e.clientY - rect.top) * sy;
+    mouseX = dragStartX;
+    mouseY = dragStartY;
+  }
 });
 window.addEventListener('mousemove', e => {
   if (!canvas) return;
@@ -2058,10 +2149,27 @@ window.addEventListener('mousemove', e => {
     snapPoint = null;
     drawGraph(true);
   }
+  if (isScaling) {
+    const rect = canvas.getBoundingClientRect();
+    const dx = (e.clientX - rect.left) * (canvas.width / rect.width) - dragStartX;
+    const dy = (e.clientY - rect.top) * (canvas.height / rect.height) - dragStartY;
+    const xFactor = 1 + dx / canvas.width * 3;
+    const yFactor = 1 - dy / canvas.height * 3;
+    xMin = scaleCenterX - (scaleCenterX - scaleStartXMin) * xFactor;
+    xMax = scaleCenterX + (scaleStartXMax - scaleCenterX) * xFactor;
+    yMin = scaleCenterY - (scaleCenterY - scaleStartYMin) * yFactor;
+    yMax = scaleCenterY + (scaleStartYMax - scaleCenterY) * yFactor;
+    snapPoint = null;
+    drawGraph(true);
+  }
 });
 window.addEventListener('mouseup', () => {
   if (isDragging) {
     isDragging = false;
+    scheduleFullDraw();
+  }
+  if (isScaling) {
+    isScaling = false;
     scheduleFullDraw();
   }
 });
@@ -2080,7 +2188,7 @@ canvas.addEventListener('wheel', e => {
   snapPoint = null;
   drawGraph(true);
   if (wheelTimer) clearTimeout(wheelTimer);
-  wheelTimer = setTimeout(() => scheduleFullDraw(), 80);
+  wheelTimer = setTimeout(() => { drawGraph(false); syncRangeInputs(); }, 40);
 }, { passive: false });
 
 // Touch support
@@ -2328,11 +2436,66 @@ navItems.forEach(item => {
 // ============================================================
 //  INIT
 // ============================================================
-reindexFuncRows();
+(function initFuncs() {
+  const rows = document.querySelectorAll('#funcRows > .func-row');
+  rows.forEach((row, i) => {
+    row.dataset.func = i;
+    funcs.push({ expr: row.querySelector('.func-input').value, color: row.querySelector('.color-picker').value });
+  });
+})();
 autoFitYRange();
 syncRangeInputs();
+drawGraph();
 window.addEventListener('resize', resizeCanvas);
 setTimeout(resizeCanvas, 100);
+
+// Fullscreen toggle
+(function() {
+  let fsTarget = null;
+  function exitFS() {
+    if (!fsTarget) return;
+    fsTarget.classList.remove('fullscreen');
+    const hint = fsTarget.querySelector('.fullscreen-hint');
+    if (hint) hint.remove();
+    const target = fsTarget;
+    fsTarget = null;
+    // 等待 layout reflow 后 resize
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (typeof resizeCanvas === 'function') {
+          const c = target.querySelector('canvas');
+          if (c) { c.style.width = ''; c.style.height = ''; }
+          resizeCanvas();
+        }
+        if (window.curveScene && typeof window.curveScene.onResize === 'function') window.curveScene.onResize();
+        if (window.vectorScene && typeof window.vectorScene.onResize === 'function') window.vectorScene.onResize();
+      });
+    });
+  }
+  document.querySelectorAll('.fullscreen-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (fsTarget) { exitFS(); return; }
+      var wrapper = btn.closest('.graph-wrapper') || btn.closest('.viewer3d-wrapper');
+      if (!wrapper) return;
+      wrapper.classList.add('fullscreen');
+      var hint = document.createElement('span');
+      hint.className = 'fullscreen-hint';
+      hint.textContent = 'ESC 退出全屏';
+      wrapper.appendChild(hint);
+      fsTarget = wrapper;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (typeof resizeCanvas === 'function') resizeCanvas();
+          if (window.curveScene && typeof window.curveScene.onResize === 'function') window.curveScene.onResize();
+          if (window.vectorScene && typeof window.vectorScene.onResize === 'function') window.vectorScene.onResize();
+        });
+      });
+    });
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && fsTarget) { exitFS(); }
+  });
+})();
 
 // Sidebar collapse
 (function() {
