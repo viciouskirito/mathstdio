@@ -11,6 +11,9 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    // Keep every bundled font as a same-origin asset so the production CSP can
+    // retain a strict `font-src 'self'` policy without browser console errors.
+    assetsInlineLimit: 0,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
