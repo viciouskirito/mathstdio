@@ -18,7 +18,6 @@ test('home and API dialog have no WCAG A/AA violations', async ({ page }, testIn
 
   await page.locator('.dialog-close').click();
   await page.locator('#theme-toggle').click();
-  await page.locator('#theme-toggle').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.waitForTimeout(350);
   const darkResults = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();

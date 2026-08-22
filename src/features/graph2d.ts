@@ -86,7 +86,7 @@ export class Graph2D {
     this.#onChange = onChange;
 
     this.#bindControls();
-    this.addFunction('sin(x)', SERIES_COLORS[0] ?? '#2563eb');
+    this.addFunction('sin(x)', SERIES_COLORS[0] ?? '#2563eb', false);
     this.autoFit();
     this.#resizeObserver = new ResizeObserver(() => this.resize());
     this.#resizeObserver.observe(this.canvas.parentElement ?? this.canvas);
@@ -116,7 +116,7 @@ export class Graph2D {
     this.render();
   }
 
-  addFunction(expression = 'x', color?: string): void {
+  addFunction(expression = 'x', color?: string, focus = true): void {
     if (this.#functions.length >= MAX_FUNCTIONS) {
       byId<HTMLParagraphElement>('function-limit').textContent =
         `最多同时绘制 ${MAX_FUNCTIONS} 条函数。`;
@@ -134,7 +134,7 @@ export class Graph2D {
     this.#reindexFunctionRows();
     this.#selectFunction(id);
     this.#compile(runtime);
-    runtime.input.focus({ preventScroll: true });
+    if (focus) runtime.input.focus({ preventScroll: true });
     this.render();
     this.#emitChange();
   }

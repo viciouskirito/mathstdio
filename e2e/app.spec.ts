@@ -50,6 +50,7 @@ test('2D expressions, limits, ranges and keyboard controls are robust', async ({
   await page.getByRole('button', { name: '＋ 添加' }).click();
   await page.locator('.function-input').nth(2).fill('cos(x)');
   await expect(page.locator('#graph-summary')).toContainText('当前绘制 3 条函数');
+  await expect(page.locator('#graph-summary')).toContainText('cos(x)');
   const renderMs = Number(await page.locator('#graph-canvas').getAttribute('data-render-ms'));
   expect(renderMs).toBeLessThan(120);
 
@@ -171,4 +172,30 @@ test('tablet control panels can collapse without losing their state', async ({
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(card.locator('.function-input')).toHaveValue('sin(x)');
+});
+
+test('calculations remain available when WebGL cannot initialize', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium-desktop');
+  const errors = collectPageErrors(page);
+  await page.addInitScript(() => {
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      configurable: true,
+      value(this: HTMLCanvasElement, type: string, ...args: unknown[]) {
+        if (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl') return null;
+        return Reflect.apply(originalGetContext, this, [type, ...args]);
+      },
+    });
+  });
+  await openApp(page);
+
+  await chooseTool(page, 'vector');
+  await expect(page.locator('#vector-result')).toContainText('(4, 5, 3)');
+  await expect(page.locator('#vector-status')).toContainText('WebGL 不可用');
+  await expect(page.locator('#vector-stage .scene-fallback')).toBeVisible();
+
+  await chooseTool(page, 'curve');
+  await expect(page.locator('#curve-canvas')).toHaveAttribute('data-point-count', '1001');
+  await expect(page.locator('#curve-status')).toContainText('WebGL 不可用');
+  expect(errors).toEqual([]);
 });

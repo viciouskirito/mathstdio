@@ -169,9 +169,8 @@ function bindThemeControl(): void {
     if (state.theme === 'system') applyTheme();
   });
   byId<HTMLButtonElement>('theme-toggle').addEventListener('click', () => {
-    const order: ThemePreference[] = ['system', 'light', 'dark'];
-    const index = order.indexOf(state.theme);
-    state.theme = order[(index + 1) % order.length] ?? 'system';
+    const currentlyDark = document.documentElement.dataset.theme === 'dark';
+    state.theme = currentlyDark ? 'light' : 'dark';
     writeThemePreference(state.theme);
     applyTheme();
   });
@@ -191,16 +190,12 @@ function applyTheme(): void {
   if (meta) meta.content = dark ? '#0d1019' : '#f6f7fb';
   const button = document.getElementById('theme-toggle') as HTMLButtonElement | null;
   if (button) {
-    const labels: Record<ThemePreference, string> = {
-      system: '跟随系统',
-      light: '浅色',
-      dark: '深色',
-    };
-    const glyphs: Record<ThemePreference, string> = { system: '◐', light: '☀', dark: '☾' };
-    button.setAttribute('aria-label', `主题：${labels[state.theme]}，点击切换`);
-    button.title = `当前主题：${labels[state.theme]}`;
+    const currentLabel = dark ? '深色' : '浅色';
+    const nextLabel = dark ? '浅色' : '深色';
+    button.setAttribute('aria-label', `当前为${currentLabel}主题，点击切换至${nextLabel}主题`);
+    button.title = `切换至${nextLabel}主题`;
     const glyph = button.querySelector<HTMLElement>('.theme-glyph');
-    if (glyph) glyph.textContent = glyphs[state.theme];
+    if (glyph) glyph.textContent = dark ? '☾' : '☀';
   }
   graph?.refreshTheme();
   curveTool?.refreshTheme();

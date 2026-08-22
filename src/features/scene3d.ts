@@ -38,6 +38,17 @@ interface CurvePreset extends CurveDefinition {
   label: string;
 }
 
+interface SceneHandle {
+  readonly canvas: HTMLCanvasElement;
+  readonly available: boolean;
+  setActive(active: boolean): void;
+  refreshTheme(): void;
+  resetCamera(): void;
+  setCurve(points: Vector3[]): void;
+  setVectors(values: VectorValues, result: VectorResult): void;
+  dispose(): void;
+}
+
 const CURVE_PRESETS: Record<string, CurvePreset> = {
   helix: {
     label: '螺旋线',
@@ -92,8 +103,9 @@ function disposeObject(object: Object3D): void {
   });
 }
 
-class MathScene {
+class MathScene implements SceneHandle {
   readonly canvas: HTMLCanvasElement;
+  readonly available = true;
   readonly #scene = new Scene();
   readonly #camera = new PerspectiveCamera(42, 1, 0.01, 1e9);
   readonly #renderer: WebGLRenderer;
@@ -107,10 +119,11 @@ class MathScene {
   #defaultDistance = 8;
   #renderCount = 0;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, context: WebGLRenderingContext | WebGL2RenderingContext) {
     this.canvas = canvas;
     this.#renderer = new WebGLRenderer({
       canvas,
+      context,
       antialias: true,
       alpha: false,
       powerPreference: 'high-performance',
@@ -367,13 +380,58 @@ class MathScene {
   };
 }
 
+class UnavailableMathScene implements SceneHandle {
+  readonly available = false;
+  readonly #notice: HTMLDivElement;
+
+  constructor(readonly canvas: HTMLCanvasElement) {
+    canvas.dataset.webgl = 'unavailable';
+    this.#notice = document.createElement('div');
+    this.#notice.className = 'scene-fallback';
+    this.#notice.setAttribute('role', 'status');
+    const icon = document.createElement('span');
+    icon.className = 'scene-fallback-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '◇';
+    const title = document.createElement('strong');
+    title.textContent = '3D 预览暂不可用';
+    const description = document.createElement('span');
+    description.textContent = '数值计算仍可使用；请启用硬件加速后刷新页面。';
+    this.#notice.append(icon, title, description);
+    canvas.parentElement?.append(this.#notice);
+  }
+
+  setActive(): void {}
+
+  refreshTheme(): void {}
+
+  resetCamera(): void {}
+
+  setCurve(): void {}
+
+  setVectors(): void {}
+
+  dispose(): void {
+    this.#notice.remove();
+  }
+}
+
+function createMathScene(canvas: HTMLCanvasElement): SceneHandle {
+  try {
+    const context = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+    return context ? new MathScene(canvas, context) : new UnavailableMathScene(canvas);
+  } catch {
+    return new UnavailableMathScene(canvas);
+  }
+}
+
 export interface CurveChangeDetail {
   definition: CurveDefinition;
   pointCount: number;
 }
 
 export class CurveTool {
-  readonly #scene: MathScene;
+  readonly #scene: SceneHandle;
   readonly #inputs = {
     x: byId<HTMLInputElement>('curve-x'),
     y: byId<HTMLInputElement>('curve-y'),
@@ -388,7 +446,7 @@ export class CurveTool {
 
   constructor(onChange?: (detail: CurveChangeDetail) => void) {
     this.#onChange = onChange;
-    this.#scene = new MathScene(byId<HTMLCanvasElement>('curve-canvas'));
+    this.#scene = createMathScene(byId<HTMLCanvasElement>('curve-canvas'));
     byId<HTMLButtonElement>('draw-curve').addEventListener('click', () => this.draw());
     byId<HTMLButtonElement>('reset-curve-camera').addEventListener('click', () =>
       this.#scene.resetCamera(),
@@ -461,8 +519,13 @@ export class CurveTool {
     for (const input of Object.values(this.#inputs)) input.setAttribute('aria-invalid', 'false');
     this.#scene.setCurve(points);
     const elapsed = performance.now() - started;
-    this.#status.textContent = `${points.length.toLocaleString('zh-CN')} 点 · ${elapsed.toFixed(1)} ms`;
-    this.#summary.textContent = `已绘制参数曲线 x(t)=${definition.x}，y(t)=${definition.y}，z(t)=${definition.z}；t 从 ${formatNumber(definition.tMin)} 到 ${formatNumber(definition.tMax)}。`;
+    this.#status.textContent = this.#scene.available
+      ? `${points.length.toLocaleString('zh-CN')} 点 · ${elapsed.toFixed(1)} ms`
+      : `WebGL 不可用 · ${points.length.toLocaleString('zh-CN')} 点已校验`;
+    const fallbackNotice = this.#scene.available
+      ? ''
+      : ' 当前设备无法显示 3D 预览，但表达式和参数范围已完成校验。';
+    this.#summary.textContent = `已绘制参数曲线 x(t)=${definition.x}，y(t)=${definition.y}，z(t)=${definition.z}；t 从 ${formatNumber(definition.tMin)} 到 ${formatNumber(definition.tMax)}。${fallbackNotice}`;
     this.#scene.canvas.dataset.pointCount = String(points.length);
     this.#onChange?.({ definition, pointCount: points.length });
     return true;
@@ -509,7 +572,7 @@ export interface VectorChangeDetail {
 }
 
 export class VectorTool {
-  readonly #scene: MathScene;
+  readonly #scene: SceneHandle;
   readonly #inputs = {
     ax: byId<HTMLInputElement>('vector-ax'),
     ay: byId<HTMLInputElement>('vector-ay'),
@@ -528,7 +591,7 @@ export class VectorTool {
 
   constructor(onChange?: (detail: VectorChangeDetail) => void) {
     this.#onChange = onChange;
-    this.#scene = new MathScene(byId<HTMLCanvasElement>('vector-canvas'));
+    this.#scene = createMathScene(byId<HTMLCanvasElement>('vector-canvas'));
     const updateLater = debounce(() => this.update(), 100);
     for (const input of Object.values(this.#inputs)) input.addEventListener('input', updateLater);
     for (const button of document.querySelectorAll<HTMLButtonElement>('[data-operation]')) {
@@ -641,11 +704,17 @@ export class VectorTool {
       Math.abs(result.scalar ?? 0),
     );
     const largeNotice = largestValue > 1e5 ? '数值较大，场景已自动适配比例。' : '';
-    this.#status.textContent = zeroCount
+    const calculationStatus = zeroCount
       ? `${zeroCount} 个零向量`
       : largeNotice
         ? '数值较大 · 已适配'
         : '已更新';
-    this.#summary.textContent = `向量 A=${aText}，B=${bText}；${operationLabels[result.operation]} ${value.textContent}。${detail.textContent}。${largeNotice}`;
+    this.#status.textContent = this.#scene.available
+      ? calculationStatus
+      : `${calculationStatus} · WebGL 不可用`;
+    const fallbackNotice = this.#scene.available
+      ? ''
+      : ' 当前设备无法显示 3D 预览，数值运算不受影响。';
+    this.#summary.textContent = `向量 A=${aText}，B=${bText}；${operationLabels[result.operation]} ${value.textContent}。${detail.textContent}。${largeNotice}${fallbackNotice}`;
   }
 }
