@@ -1091,6 +1091,18 @@ canvas:focus-visible {
 .ai-result strong {
   color: var(--ai);
 }
+.ai-result .ai-math {
+  color: inherit;
+}
+.ai-result .katex {
+  font-size: 1.03em;
+}
+.ai-result .katex-display {
+  margin: 14px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0 7px;
+}
 .ai-result.is-loading {
   color: var(--text-soft);
 }

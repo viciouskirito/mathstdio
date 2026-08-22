@@ -1,4 +1,6 @@
 import DOMPurify from 'dompurify';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { marked } from 'marked';
 
 import { byId } from '../core/dom';
@@ -15,6 +17,44 @@ const MODEL_LABELS: Record<SupportedModel, string> = {
   'deepseek-v4-flash': 'V4 Flash',
   'deepseek-v4-pro': 'V4 Pro',
 };
+
+interface MathToken {
+  placeholder: string;
+  source: string;
+  displayMode: boolean;
+}
+
+interface ProtectedMarkdown {
+  source: string;
+  tokens: MathToken[];
+}
+
+const MATH_DELIMITER_PATTERN =
+  /\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
+
+function protectMath(markdown: string): ProtectedMarkdown {
+  const tokens: MathToken[] = [];
+  const source = markdown.replace(
+    MATH_DELIMITER_PATTERN,
+    (
+      _match,
+      displayBracket: string,
+      inlineParen: string,
+      displayDollar: string,
+      inlineDollar: string,
+    ) => {
+      const source = displayBracket ?? inlineParen ?? displayDollar ?? inlineDollar ?? '';
+      const token: MathToken = {
+        placeholder: `MATH_STUDIO_FORMULA_${tokens.length}`,
+        source,
+        displayMode: displayBracket !== undefined || displayDollar !== undefined,
+      };
+      tokens.push(token);
+      return token.placeholder;
+    },
+  );
+  return { source, tokens };
+}
 
 export interface DeepSeekAnalysisRequest {
   system: string;
@@ -422,7 +462,12 @@ export class AIManager {
   }
 
   async #renderMarkdown(target: HTMLElement, markdown: string): Promise<void> {
-    const parsed = await marked.parse(markdown, { async: false, gfm: true, breaks: true });
+    const protectedMarkdown = protectMath(markdown);
+    const parsed = await marked.parse(protectedMarkdown.source, {
+      async: false,
+      gfm: true,
+      breaks: true,
+    });
     const clean = DOMPurify.sanitize(parsed, {
       USE_PROFILES: { html: true },
       FORBID_TAGS: [
@@ -444,7 +489,53 @@ export class AIManager {
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
     }
+    this.#renderMath(template.content, protectedMarkdown.tokens);
     target.replaceChildren(template.content.cloneNode(true));
+  }
+
+  #renderMath(root: DocumentFragment, tokens: MathToken[]): void {
+    if (tokens.length === 0) return;
+    const tokenMap = new Map(tokens.map((token) => [token.placeholder, token]));
+    const matcher = new RegExp(tokens.map((token) => token.placeholder).join('|'), 'g');
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let current: Node | null;
+    while ((current = walker.nextNode())) {
+      if (current.parentElement?.closest('code, pre')) continue;
+      textNodes.push(current as Text);
+    }
+
+    for (const textNode of textNodes) {
+      if (!matcher.test(textNode.data)) {
+        matcher.lastIndex = 0;
+        continue;
+      }
+      matcher.lastIndex = 0;
+      const fragment = document.createDocumentFragment();
+      let cursor = 0;
+      let match: RegExpExecArray | null;
+      while ((match = matcher.exec(textNode.data))) {
+        if (match.index > cursor) fragment.append(textNode.data.slice(cursor, match.index));
+        const token = tokenMap.get(match[0]);
+        if (token) {
+          const formula = document.createElement('span');
+          formula.className = 'ai-math';
+          katex.render(token.source.trim(), formula, {
+            displayMode: token.displayMode,
+            throwOnError: false,
+            strict: 'ignore',
+            trust: false,
+            output: 'htmlAndMathml',
+          });
+          fragment.append(formula);
+        } else {
+          fragment.append(match[0]);
+        }
+        cursor = match.index + match[0].length;
+      }
+      if (cursor < textNode.data.length) fragment.append(textNode.data.slice(cursor));
+      textNode.replaceWith(fragment);
+    }
   }
 
   #message(text: string): HTMLParagraphElement {

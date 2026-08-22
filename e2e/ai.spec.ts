@@ -44,7 +44,7 @@ test('AI connection selects v4 Flash and sanitizes Markdown', async ({ page }, t
           {
             message: {
               content:
-                '# 分析结论\n<img src=x onerror="window.aiPwned=1"><script>window.aiPwned=2</script>函数是周期函数。',
+                '# 分析结论\n<img src=x onerror="window.aiPwned=1"><script>window.aiPwned=2</script>函数是周期函数，满足 \\(f(x)=\\sin x\\)。',
             },
           },
         ],
@@ -83,6 +83,7 @@ test('AI connection selects v4 Flash and sanitizes Markdown', async ({ page }, t
 
   await page.getByRole('button', { name: '分析选中' }).click();
   await expect(page.locator('#graph-ai-result')).toContainText('分析结论');
+  await expect(page.locator('#graph-ai-result .katex')).toHaveCount(1);
   await expect(page.locator('#graph-ai-result script')).toHaveCount(0);
   await expect(page.locator('#graph-ai-result [onerror]')).toHaveCount(0);
   expect(await page.evaluate(() => Reflect.has(window, 'aiPwned'))).toBe(false);

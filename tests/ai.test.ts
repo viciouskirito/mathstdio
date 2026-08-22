@@ -267,6 +267,39 @@ describe('AIManager', () => {
     });
   });
 
+  it('renders inline and display LaTeX formulas in AI Markdown', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 'deepseek-v4-flash' }] }))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          choices: [
+            {
+              message: {
+                content:
+                  '行内公式：\\(f(x)=\\sin x\\)，以及块级公式：\\[x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}\\]。',
+              },
+            },
+          ],
+        }),
+      );
+    const manager = new AIManager(new DeepSeekClient(fetchMock));
+    const keyInput = document.querySelector<HTMLInputElement>('#api-key');
+    const button = document.querySelector<HTMLButtonElement>('#ai-one');
+    const target = document.querySelector<HTMLDivElement>('#result');
+    if (!keyInput || !button || !target) throw new Error('fixture incomplete');
+    keyInput.value = 'key';
+    await manager.connect();
+    await manager.run(button, target, request);
+    expect(target.querySelectorAll('.katex')).toHaveLength(2);
+    expect(target.querySelectorAll('.katex-display')).toHaveLength(1);
+    const visibleMath = [...target.querySelectorAll('.katex-html')]
+      .map((element) => element.textContent)
+      .join('');
+    expect(visibleMath).not.toContain('\\sin');
+    expect(visibleMath).not.toContain('\\frac');
+  });
+
   it('locks duplicate analysis and restores controls', async () => {
     let resolveChat: ((response: Response) => void) | undefined;
     const fetchMock = vi
