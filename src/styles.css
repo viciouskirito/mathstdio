@@ -742,6 +742,10 @@ canvas:focus-visible {
   font-size: 11px;
 }
 
+.function-error:empty {
+  display: none;
+}
+
 .range-grid,
 .vector-grid {
   display: grid;
