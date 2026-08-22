@@ -1,0 +1,127 @@
+# Math Studio v3
+
+Math Studio 是面向学生与教师的交互式数学可视化实验室，提供 2D 函数、3D 参数曲线、三维向量运算和可选的 DeepSeek 数学讲解。
+
+- 在线地址：[mathstdio.vercel.app](https://mathstdio.vercel.app)
+- 当前版本：`3.0.0`
+- 技术栈：Vite、原生 TypeScript、Canvas 2D、Three.js、mathjs
+
+## 功能
+
+- 2D 函数：最多同时绘制 8 条函数，支持关键点标记、指针平移、滚轮/双指缩放、自动适配和坐标吸附。
+- 3D 参数曲线：支持螺旋线、三叶结、利萨如曲线、球面螺线预设，也可输入自定义 `x(t)`、`y(t)`、`z(t)`。
+- 三维向量：支持加法、减法、点积与叉积，并同步展示计算结果和几何辅助线。
+- AI 讲解：用户主动连接 DeepSeek 后，可分析函数、曲线和向量；模型响应以消毒后的 Markdown 呈现。
+- 可访问界面：桌面双栏、平板可折叠控制区、移动端底部导航、系统/浅色/深色主题、可见焦点、键盘画布控制和减少动效支持。
+
+应用不包含后端代理、导出功能或其他数学模块。
+
+## 表达式语法
+
+表达式通过受限 AST 编译，不使用 `eval` 或 `new Function`。每条表达式最多 200 个字符、128 个 AST 节点；未知符号、赋值、成员访问和数组会被拒绝。
+
+| 类别         | 写法示例                                 | 说明                                |
+| ------------ | ---------------------------------------- | ----------------------------------- |
+| 变量         | `x`、`t`                                 | 2D 使用 `x`，参数曲线使用 `t`       |
+| 常量         | `pi`、`π`、`e`                           | `PI` 也会规范为 `pi`                |
+| 四则与幂     | `x+1`、`x/2`、`x^2`                      | 支持一元正负号                      |
+| 隐式乘法     | `2x`、`2pi`、`(x+1)(x-1)`                | 也可显式写 `*`                      |
+| 三角函数     | `sin`、`cos`、`tan`、`sec`、`csc`、`cot` | 参数使用弧度                        |
+| 反三角函数   | `asin`、`acos`、`atan`                   | 返回弧度                            |
+| 双曲函数     | `sinh`、`cosh`、`tanh`                   |                                     |
+| 根式与绝对值 | `sqrt`、`cbrt`、`abs`                    |                                     |
+| 指数与对数   | `exp`、`ln`、`log`                       | `ln` 是自然对数，`log` 是十进制对数 |
+| 取整         | `floor`、`ceil`、`round`                 |                                     |
+
+表达式结果必须是有限实数。视图和参数范围必须正向，跨度限制为 `1e-6` 至 `1e6`；向量分量绝对值不能超过 `1e6`。
+
+## 交互说明
+
+### 2D 画布
+
+- 拖拽：平移。
+- 滚轮或双指：以指针/手势中心缩放。
+- 悬停：按横坐标索引吸附到最近曲线或关键点。
+- 键盘：方向键平移，`+` / `-` 缩放，`Home` 恢复默认范围。
+
+### 3D 画布
+
+- 拖拽：旋转视角。
+- 滚轮：缩放。
+- 键盘：方向键旋转，`+` / `-` 缩放，`Home` 重置相机。
+
+3D 场景按需初始化和渲染；切换工具或页面进入后台后，不会持续运行渲染循环。
+
+## 本地开发
+
+需要 Node.js 20 或更高版本，推荐使用 Node.js 24 和项目提交的 npm 锁文件。
+
+```bash
+npm ci
+npm run dev
+```
+
+常用命令：
+
+| 命令                   | 用途                            |
+| ---------------------- | ------------------------------- |
+| `npm run dev`          | 启动 Vite 开发服务器            |
+| `npm run build`        | 类型检查并构建 `dist`           |
+| `npm run preview`      | 本地预览生产构建                |
+| `npm run format:check` | 检查 Prettier 格式              |
+| `npm run lint`         | 运行 ESLint                     |
+| `npm run typecheck`    | 运行 TypeScript 检查            |
+| `npm test`             | 运行 Vitest 和覆盖率门禁        |
+| `npm run test:e2e`     | 运行 Playwright、axe 和视觉快照 |
+| `npm run check`        | 顺序运行全部质量门禁            |
+
+首次运行端到端测试前安装浏览器：
+
+```bash
+npx playwright install chromium firefox webkit
+```
+
+所有 AI 自动化测试都会拦截网络并使用假密钥，不会读取本地环境变量或真实凭据。
+
+## DeepSeek API Key 生命周期
+
+1. 点击页面右上角“AI 设置”。
+2. 输入个人 API Key，并主动点击“验证连接”。
+3. 应用请求 `GET https://api.deepseek.com/models`，优先选择 `deepseek-v4-flash`；若不可用则选择首个 Flash 模型或首个模型。
+4. 分析时请求 `POST https://api.deepseek.com/chat/completions`。
+5. 密钥仅存在于密码输入框和当前页面的私有内存中；不会写入 Local Storage、Session Storage、日志或构建产物，刷新或关闭页面后清除。
+
+请自行留意 DeepSeek 的访问权限、额度和费用。这个纯前端模型适合个人使用；共享设备上应在使用后刷新或关闭页面。
+
+## 项目结构
+
+```text
+src/
+  core/            表达式、数学与 DOM 工具
+  features/        2D、3D/向量、AI 模块
+  main.ts          状态、导航、主题与懒加载入口
+  styles.css       设计令牌和响应式界面
+e2e/               Playwright、axe、视觉测试
+tests/             Vitest 单元测试
+```
+
+应用版本来自 `package.json`，由 Vite 在构建时注入。Three.js、Marked 和 DOMPurify 所在功能按需加载；Noto Sans SC 字体随站点本地托管。
+
+## 发布到 Vercel
+
+仓库根目录的 `vercel.json` 固定执行 `npm run build` 并发布 `dist`，同时设置 CSP、防嵌入、内容类型、来源策略和权限策略等安全响应头。
+
+1. 在 Vercel 中连接 GitHub 仓库。
+2. Framework Preset 使用 Vite；配置文件已包含构建命令和输出目录，无需重复覆盖。
+3. 推送 `main`，等待 GitHub Actions 与 Vercel Production 均通过。
+4. 在桌面和 390×844 移动视口验证首页、三个工具、主题和 AI 设置对话框。
+
+## 故障排查
+
+- 画布为空：确认表达式没有红色错误提示，范围是有限且正向的；然后点击“自动适配”或“重置视图”。
+- 3D 不可用：启用浏览器硬件加速和 WebGL，更新显卡驱动，或改用最新版 Chromium、Firefox、Safari。
+- AI 无法连接：检查 Key、网络、DeepSeek 服务状态与额度；401 通常表示凭据无效，429 表示频率或额度受限，5xx 表示服务暂时不可用。
+- 字体或脚本被阻止：确认站点资源来自当前域名，API 请求仅发往 `api.deepseek.com`；浏览器扩展也可能拦截请求。
+- 视觉测试差异：确认浏览器版本与锁文件一致，再运行 `npm run test:e2e -- --update-snapshots` 并人工审查变化。
+
+贡献方式见 [CONTRIBUTING.md](./CONTRIBUTING.md)，安全问题请按 [SECURITY.md](./SECURITY.md) 私下报告。

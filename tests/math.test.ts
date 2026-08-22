@@ -1,0 +1,114 @@
+import { describe, expect, it } from 'vitest';
+
+import { compileExpression } from '../src/core/expression';
+import {
+  analyzeSampledKeyPoints,
+  calculateVector,
+  fitYRange,
+  validateRange,
+  validateVector,
+} from '../src/core/math';
+import type { CompiledExpression, VectorValues } from '../src/types';
+
+function expression(source: string): CompiledExpression {
+  const result = compileExpression(source, 'x');
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+}
+
+describe('range utilities', () => {
+  it('accepts zero boundaries and valid ranges', () => {
+    expect(validateRange({ xMin: 0, xMax: 10, yMin: 0, yMax: 1 })).toEqual({
+      ok: true,
+      value: { xMin: 0, xMax: 10, yMin: 0, yMax: 1 },
+    });
+  });
+
+  it.each([
+    [{ xMin: 2, xMax: 1, yMin: -1, yMax: 1 }, '最大值必须大于最小值'],
+    [{ xMin: 0, xMax: 1e-7, yMin: -1, yMax: 1 }, '范围过小'],
+    [{ xMin: 0, xMax: 1e6 + 1, yMin: -1, yMax: 1 }, '不能超过'],
+    [{ xMin: Number.NaN, xMax: 1, yMin: -1, yMax: 1 }, '有限数字'],
+  ])('rejects invalid range %#', (range, message) => {
+    const result = validateRange(range);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.message).toContain(message);
+  });
+
+  it('fits a robust visible y range', () => {
+    const [minimum, maximum] = fitYRange([expression('x^2')], -2, 2);
+    expect(minimum).toBeLessThanOrEqual(0);
+    expect(maximum).toBeGreaterThan(3.5);
+    expect(fitYRange([], -1, 1)).toEqual([-7, 7]);
+  });
+});
+
+describe('key point analysis', () => {
+  it('finds roots, extrema and the y-intercept', () => {
+    const compiled = expression('x^2-1');
+    const samples = Array.from({ length: 401 }, (_, index) => {
+      const x = -2 + index / 100;
+      return { x, y: compiled.evaluate(x) };
+    });
+    const points = analyzeSampledKeyPoints(compiled, samples, -2, 2);
+    const roots = points.filter((point) => point.type === 'root').map((point) => point.x);
+    expect(roots).toEqual(expect.arrayContaining([expect.closeTo(-1, 5), expect.closeTo(1, 5)]));
+    expect(points.some((point) => point.type === 'minimum' && Math.abs(point.x) < 0.02)).toBe(true);
+    expect(points.some((point) => point.type === 'y-intercept' && point.y === -1)).toBe(true);
+  });
+
+  it('handles discontinuity gaps and sign-change roots', () => {
+    const compiled = expression('x-0.123');
+    const samples = Array.from({ length: 41 }, (_, index) => {
+      const x = -1 + index * 0.05;
+      return index === 2 ? null : { x, y: compiled.evaluate(x) };
+    });
+    const root = analyzeSampledKeyPoints(compiled, samples, -1, 1).find(
+      (point) => point.type === 'root',
+    );
+    expect(root?.x).toBeCloseTo(0.123, 8);
+  });
+});
+
+describe('vector operations', () => {
+  const base: Omit<VectorValues, 'operation'> = { a: [3, 2, 1], b: [1, 3, 2] };
+
+  it('adds vectors', () => {
+    expect(calculateVector({ ...base, operation: 'add' })).toMatchObject({
+      vector: [4, 5, 3],
+      helperEndpoint: [1, 3, 2],
+    });
+  });
+
+  it('subtracts vectors and uses -B as the helper endpoint', () => {
+    expect(calculateVector({ ...base, operation: 'subtract' })).toMatchObject({
+      vector: [2, -1, -1],
+      helperEndpoint: [-1, -3, -2],
+    });
+  });
+
+  it('calculates the dot product and angle', () => {
+    const result = calculateVector({ ...base, operation: 'dot' });
+    expect(result.scalar).toBe(11);
+    expect(result.angleDegrees).toBeCloseTo(38.213, 3);
+  });
+
+  it('calculates the cross product', () => {
+    const result = calculateVector({ ...base, operation: 'cross' });
+    expect(result.vector).toEqual([1, -5, 7]);
+    expect(result.magnitude).toBeCloseTo(Math.sqrt(75), 12);
+  });
+
+  it('handles zero vectors and rejects non-finite or oversized components', () => {
+    const zeroDot = calculateVector({ a: [0, 0, 0], b: [1, 2, 3], operation: 'dot' });
+    expect(zeroDot.scalar).toBe(0);
+    expect(zeroDot.angleDegrees).toBeUndefined();
+    expect(validateVector({ a: [0, 0, 0], b: [1, 2, 3], operation: 'add' })).toBeNull();
+    expect(validateVector({ a: [Number.NaN, 0, 0], b: [0, 0, 0], operation: 'add' })).toContain(
+      '有限',
+    );
+    expect(validateVector({ a: [1e6 + 1, 0, 0], b: [0, 0, 0], operation: 'add' })).toContain(
+      '1,000,000',
+    );
+  });
+});
