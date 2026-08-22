@@ -27,7 +27,11 @@ function fixture(): void {
     <span id="header-connection-dot"></span>
     <dialog id="api-dialog"></dialog>
     <input id="api-key" />
-    <select id="api-model" disabled><option value="">连接后加载模型</option></select>
+    <div id="api-model-selector" data-selected="flash">
+      <button class="model-option" data-model="deepseek-v4-flash" disabled></button>
+      <button class="model-option" data-model="deepseek-v4-pro" disabled></button>
+    </div>
+    <input id="api-model" type="hidden" value="" />
     <button id="connect-api"></button>
     <span id="api-status"></span>
     <button id="ai-one" class="ai-button"></button>
@@ -154,7 +158,12 @@ describe('AIManager', () => {
   it('selects v4 Flash first and keeps credentials out of storage', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse({
-        data: [{ id: 'deepseek-chat' }, { id: 'deepseek-v4-flash' }, { id: 'other-flash' }],
+        data: [
+          { id: 'deepseek-chat' },
+          { id: 'deepseek-v4-flash' },
+          { id: 'unexpected-model' },
+          { id: 'deepseek-v4-pro' },
+        ],
       }),
     );
     const stateSpy = vi.fn();
@@ -165,8 +174,19 @@ describe('AIManager', () => {
     await manager.connect();
     expect(manager.ready).toBe(true);
     expect(manager.model).toBe('deepseek-v4-flash');
+    expect(document.querySelectorAll('.model-option')).toHaveLength(2);
+    const proButton = document.querySelector<HTMLButtonElement>('[data-model="deepseek-v4-pro"]');
+    if (!proButton) throw new Error('fixture missing Pro model button');
+    expect(proButton.disabled).toBe(false);
+    proButton.click();
+    expect(manager.model).toBe('deepseek-v4-pro');
+    expect(proButton.getAttribute('aria-checked')).toBe('true');
+    proButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect(manager.model).toBe('deepseek-v4-flash');
+    expect(document.activeElement?.getAttribute('data-model')).toBe('deepseek-v4-flash');
+    proButton.click();
     expect(localStorage.length).toBe(0);
-    expect(stateSpy).toHaveBeenLastCalledWith({ status: 'ready', model: 'deepseek-v4-flash' });
+    expect(stateSpy).toHaveBeenLastCalledWith({ status: 'ready', model: 'deepseek-v4-pro' });
   });
 
   it('validates with Enter without submitting the dialog form', async () => {
@@ -187,27 +207,31 @@ describe('AIManager', () => {
     await vi.waitFor(() => expect(manager.ready).toBe(true));
   });
 
-  it('falls back to another Flash model, then the first model', async () => {
-    const flashFetch = vi
+  it('uses Pro when it is the only supported model and rejects unknown aliases', async () => {
+    const proFetch = vi
       .fn<typeof fetch>()
-      .mockResolvedValue(jsonResponse({ data: [{ id: 'chat' }, { id: 'FAST-FLASH' }] }));
-    const flashManager = new AIManager(new DeepSeekClient(flashFetch));
+      .mockResolvedValue(
+        jsonResponse({ data: [{ id: 'deepseek-chat' }, { id: 'deepseek-v4-pro' }] }),
+      );
+    const proManager = new AIManager(new DeepSeekClient(proFetch));
     const keyInput = document.querySelector<HTMLInputElement>('#api-key');
     if (!keyInput) throw new Error('fixture missing key input');
     keyInput.value = 'key';
-    await flashManager.connect();
-    expect(flashManager.model).toBe('FAST-FLASH');
+    await proManager.connect();
+    expect(proManager.model).toBe('deepseek-v4-pro');
 
     fixture();
-    const firstFetch = vi
+    const unknownFetch = vi
       .fn<typeof fetch>()
-      .mockResolvedValue(jsonResponse({ data: [{ id: 'first' }, { id: 'second' }] }));
-    const firstManager = new AIManager(new DeepSeekClient(firstFetch));
+      .mockResolvedValue(jsonResponse({ data: [{ id: 'deepseek-chat' }, { id: 'other-flash' }] }));
+    const unknownManager = new AIManager(new DeepSeekClient(unknownFetch));
     const nextKeyInput = document.querySelector<HTMLInputElement>('#api-key');
-    if (!nextKeyInput) throw new Error('fixture missing key input');
+    const status = document.querySelector<HTMLSpanElement>('#api-status');
+    if (!nextKeyInput || !status) throw new Error('fixture incomplete');
     nextKeyInput.value = 'key';
-    await firstManager.connect();
-    expect(firstManager.model).toBe('first');
+    await unknownManager.connect();
+    expect(unknownManager.ready).toBe(false);
+    expect(status.textContent).toContain('V4 Flash 或 V4 Pro');
   });
 
   it('sanitizes malicious Markdown before rendering', async () => {
@@ -247,7 +271,7 @@ describe('AIManager', () => {
     let resolveChat: ((response: Response) => void) | undefined;
     const fetchMock = vi
       .fn<typeof fetch>()
-      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 'model' }] }))
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 'deepseek-v4-flash' }] }))
       .mockImplementationOnce(
         () =>
           new Promise<Response>((resolve) => {

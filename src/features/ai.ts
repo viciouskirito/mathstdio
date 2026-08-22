@@ -5,8 +5,16 @@ import { byId } from '../core/dom';
 
 const DEEPSEEK_API = 'https://api.deepseek.com';
 const PREFERRED_MODEL = 'deepseek-v4-flash';
+const SUPPORTED_MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'] as const;
 const CONNECT_TIMEOUT_MS = 15_000;
 const ANALYSIS_TIMEOUT_MS = 45_000;
+
+type SupportedModel = (typeof SUPPORTED_MODELS)[number];
+
+const MODEL_LABELS: Record<SupportedModel, string> = {
+  'deepseek-v4-flash': 'V4 Flash',
+  'deepseek-v4-pro': 'V4 Pro',
+};
 
 export interface DeepSeekAnalysisRequest {
   system: string;
@@ -168,7 +176,11 @@ export interface AIStateDetail {
 export class AIManager {
   readonly #dialog = byId<HTMLDialogElement>('api-dialog');
   readonly #keyInput = byId<HTMLInputElement>('api-key');
-  readonly #modelSelect = byId<HTMLSelectElement>('api-model');
+  readonly #modelInput = byId<HTMLInputElement>('api-model');
+  readonly #modelSelector = byId<HTMLDivElement>('api-model-selector');
+  readonly #modelButtons = [
+    ...this.#modelSelector.querySelectorAll<HTMLButtonElement>('.model-option[data-model]'),
+  ];
   readonly #connectButton = byId<HTMLButtonElement>('connect-api');
   readonly #statusElement = byId<HTMLSpanElement>('api-status');
   readonly #connectionDot = byId<HTMLSpanElement>('header-connection-dot');
@@ -195,12 +207,18 @@ export class AIManager {
       event.preventDefault();
       void this.connect();
     });
-    this.#modelSelect.addEventListener('change', () => this.#emitState());
+    for (const button of this.#modelButtons) {
+      button.addEventListener('click', () => {
+        const model = button.dataset.model;
+        if (this.#isSupportedModel(model) && !button.disabled) this.#selectModel(model);
+      });
+    }
+    this.#modelSelector.addEventListener('keydown', (event) => this.#handleModelKeydown(event));
     window.addEventListener('pagehide', () => this.cancel());
   }
 
   get model(): string {
-    return this.#modelSelect.value;
+    return this.#modelInput.value;
   }
 
   get ready(): boolean {
@@ -225,15 +243,20 @@ export class AIManager {
     const controller = new AbortController();
     this.#connectController = controller;
     this.#connectButton.disabled = true;
-    this.#modelSelect.disabled = true;
+    this.#setModelControlsEnabled(false);
     this.#setState('checking', '正在验证…');
     try {
       const models = await this.#client.connect(candidate, controller.signal);
       if (controller.signal.aborted) return;
       this.#key = candidate;
-      this.#populateModels(models);
-      this.#modelSelect.disabled = false;
-      this.#setState('ready', `已连接 · ${this.model}`);
+      const selected = this.#populateModels(models);
+      if (!selected) {
+        throw new DeepSeekApiError(
+          '当前账号没有返回 V4 Flash 或 V4 Pro，请检查模型权限。',
+          'INVALID_RESPONSE',
+        );
+      }
+      this.#setState('ready', `已连接 · ${MODEL_LABELS[selected]}`);
     } catch (error) {
       if (controller.signal.aborted) return;
       this.#key = '';
@@ -299,29 +322,80 @@ export class AIManager {
     this.#invalidateConnection();
   }
 
-  #populateModels(models: string[]): void {
-    const fragment = document.createDocumentFragment();
-    for (const id of models) {
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = id;
-      fragment.append(option);
+  #populateModels(models: string[]): SupportedModel | null {
+    const available = new Set(models.filter((model) => this.#isSupportedModel(model)));
+    for (const button of this.#modelButtons) {
+      const model = button.dataset.model;
+      button.disabled = !this.#isSupportedModel(model) || !available.has(model);
     }
-    this.#modelSelect.replaceChildren(fragment);
-    const selected =
-      models.find((id) => id === PREFERRED_MODEL) ??
-      models.find((id) => id.toLowerCase().includes('flash')) ??
-      models[0] ??
-      '';
-    this.#modelSelect.value = selected;
+    const selected = available.has(PREFERRED_MODEL)
+      ? PREFERRED_MODEL
+      : (SUPPORTED_MODELS.find((model) => available.has(model)) ?? null);
+    this.#modelSelector.classList.toggle('is-ready', selected !== null);
+    if (selected) this.#selectModel(selected, false);
+    return selected;
   }
 
   #resetModels(): void {
-    const option = document.createElement('option');
-    option.value = '';
-    option.textContent = '连接后加载模型';
-    this.#modelSelect.replaceChildren(option);
-    this.#modelSelect.disabled = true;
+    this.#modelInput.value = '';
+    this.#modelSelector.dataset.selected = 'flash';
+    this.#modelSelector.classList.remove('is-ready');
+    for (const button of this.#modelButtons) {
+      button.disabled = true;
+      button.tabIndex = -1;
+      button.setAttribute('aria-checked', 'false');
+      button.classList.remove('is-selected');
+    }
+  }
+
+  #selectModel(model: SupportedModel, announce = true): void {
+    this.#modelInput.value = model;
+    this.#modelSelector.dataset.selected = model === 'deepseek-v4-pro' ? 'pro' : 'flash';
+    for (const button of this.#modelButtons) {
+      const selected = button.dataset.model === model;
+      button.tabIndex = selected ? 0 : -1;
+      button.setAttribute('aria-checked', String(selected));
+      button.classList.toggle('is-selected', selected);
+    }
+    if (announce && this.#state === 'ready') {
+      this.#statusElement.textContent = `已连接 · ${MODEL_LABELS[model]}`;
+      this.#emitState();
+    }
+  }
+
+  #setModelControlsEnabled(enabled: boolean): void {
+    if (enabled) return;
+    for (const button of this.#modelButtons) button.disabled = true;
+  }
+
+  #handleModelKeydown(event: KeyboardEvent): void {
+    const available = this.#modelButtons.filter((button) => !button.disabled);
+    if (available.length === 0) return;
+    const currentIndex = Math.max(
+      0,
+      available.findIndex((button) => button.dataset.model === this.model),
+    );
+    let nextIndex: number | null = null;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (currentIndex + 1) % available.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (currentIndex - 1 + available.length) % available.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = available.length - 1;
+    }
+    if (nextIndex === null) return;
+    const button = available[nextIndex];
+    const model = button?.dataset.model;
+    if (!button || !this.#isSupportedModel(model)) return;
+    event.preventDefault();
+    this.#selectModel(model);
+    button.focus();
+  }
+
+  #isSupportedModel(model: string | undefined): model is SupportedModel {
+    return SUPPORTED_MODELS.includes(model as SupportedModel);
   }
 
   #invalidateConnection(): void {

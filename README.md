@@ -87,7 +87,7 @@ npx playwright install chromium firefox webkit
 
 1. 点击页面右上角“AI 设置”。
 2. 输入个人 API Key，并主动点击“验证连接”。
-3. 应用请求 `GET https://api.deepseek.com/models`，优先选择 `deepseek-v4-flash`；若不可用则选择首个 Flash 模型或首个模型。
+3. 应用请求 `GET https://api.deepseek.com/models`，只展示官方 V4 模型 `deepseek-v4-flash` 与 `deepseek-v4-pro`，默认选择 Flash，并可在胶囊式模型控件中切换 Pro；兼容别名和未知模型不会进入列表。
 4. 分析时请求 `POST https://api.deepseek.com/chat/completions`。
 5. 密钥仅存在于密码输入框和当前页面的私有内存中；不会写入 Local Storage、Session Storage、日志或构建产物，刷新或关闭页面后清除。
 

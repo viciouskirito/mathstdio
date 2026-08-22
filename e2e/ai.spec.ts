@@ -20,7 +20,12 @@ test('AI connection selects v4 Flash and sanitizes Markdown', async ({ page }, t
       contentType: 'application/json',
       headers: corsHeaders,
       body: JSON.stringify({
-        data: [{ id: 'deepseek-chat' }, { id: 'deepseek-v4-flash' }, { id: 'other-flash' }],
+        data: [
+          { id: 'deepseek-chat' },
+          { id: 'deepseek-v4-flash' },
+          { id: 'unexpected-model' },
+          { id: 'deepseek-v4-pro' },
+        ],
       }),
     });
   });
@@ -30,6 +35,7 @@ test('AI connection selects v4 Flash and sanitizes Markdown', async ({ page }, t
       return;
     }
     expect((await route.request().allHeaders()).authorization).toBe('Bearer test-runtime-key');
+    expect((await route.request().postDataJSON()).model).toBe('deepseek-v4-pro');
     await route.fulfill({
       contentType: 'application/json',
       headers: corsHeaders,
@@ -54,6 +60,22 @@ test('AI connection selects v4 Flash and sanitizes Markdown', async ({ page }, t
   await page.getByRole('button', { name: '验证连接' }).click();
   await expect(page.locator('#api-status')).toContainText('已连接');
   await expect(page.locator('#api-model')).toHaveValue('deepseek-v4-flash');
+  await expect(page.locator('.model-option')).toHaveCount(2);
+  await expect(page.locator('[data-model="deepseek-v4-pro"]')).toBeEnabled();
+  await expect(page.locator('[data-model="unexpected-model"]')).toHaveCount(0);
+  await expect(page.locator('.select-chevron')).toHaveCount(0);
+  const indicator = page.locator('.model-selector-indicator');
+  const flashPosition = await indicator.boundingBox();
+  await page.locator('[data-model="deepseek-v4-pro"]').click();
+  await expect(page.locator('#api-model')).toHaveValue('deepseek-v4-pro');
+  await expect(page.locator('#api-model-selector')).toHaveAttribute('data-selected', 'pro');
+  await expect(page.locator('[data-model="deepseek-v4-pro"]')).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await page.waitForTimeout(280);
+  const proPosition = await indicator.boundingBox();
+  expect(proPosition?.x ?? 0).toBeGreaterThan(flashPosition?.x ?? 0);
   expect(await page.evaluate(() => Object.values(localStorage).join('|'))).not.toContain(
     'test-runtime-key',
   );

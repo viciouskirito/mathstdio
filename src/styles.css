@@ -661,7 +661,7 @@ canvas:focus-visible {
 .range-grid input,
 .equation-stack input,
 .vector-grid input,
-.dialog-field input {
+.dialog-field input:not([type='hidden']) {
   width: 100%;
   min-height: 44px;
   border: 1px solid var(--border);
@@ -1253,71 +1253,130 @@ canvas:focus-visible {
   font-size: 12px;
   line-height: 1.7;
 }
-.dialog-field input,
-.select-shell {
+.dialog-field input:not([type='hidden']),
+.model-selector {
   margin-top: 2px;
 }
 
-.dialog-field input {
+.dialog-field input:not([type='hidden']) {
   padding: 0 13px;
 }
 
-.select-shell {
+.model-selector {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  min-height: 52px;
-  padding: 0 13px 0 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 4px;
   border: 1px solid var(--border);
-  border-radius: 15px;
+  border-radius: 18px;
   background: var(--surface-muted);
+  isolation: isolate;
 }
 
-.select-shell select {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 36px 0 10px;
+.model-selector-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  z-index: 0;
+  width: calc(50% - 4px);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease;
+}
+
+.model-selector.is-ready .model-selector-indicator {
+  opacity: 1;
+}
+
+.model-selector[data-selected='pro'] .model-selector-indicator {
+  transform: translateX(100%);
+}
+
+.model-option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 7px 10px;
   border: 0;
-  outline: 0;
-  appearance: none;
   background: transparent;
-  color: var(--text);
+  color: var(--text-soft);
   cursor: pointer;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
-.select-shell select:disabled {
+.model-option:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.model-option:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.model-option.is-selected {
+  color: var(--ai);
+}
+
+.model-option:disabled {
+  opacity: 0.42;
   color: var(--text-faint);
   cursor: not-allowed;
 }
 
-.model-select-icon {
+.model-option > span:last-child {
   display: grid;
-  width: 34px;
-  height: 34px;
+  min-width: 0;
+  gap: 2px;
+  text-align: left;
+}
+
+.model-option strong,
+.model-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-option strong {
+  color: currentcolor;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.model-option small {
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.model-option-symbol {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 9px;
   background: var(--ai-soft);
   color: var(--ai);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.04em;
 }
 
-.select-shell:has(select:focus-visible) {
-  border-color: transparent;
-  box-shadow: var(--focus);
-}
-
-.select-chevron {
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  color: var(--text-soft);
-  font-size: 18px;
-  line-height: 1;
-  pointer-events: none;
-  transform: translateY(-56%);
+.pro-symbol {
+  font-size: 11px;
 }
 .connect-row {
   display: flex;

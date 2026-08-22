@@ -596,16 +596,45 @@
           <button id="connect-api" class="primary-button" type="button">验证连接</button
           ><span id="api-status" class="connection-status" role="status">尚未连接</span>
         </div>
-        <label class="dialog-field" for="api-model"
-          >模型
-          <span class="select-shell"
-            ><span class="model-select-icon" aria-hidden="true">AI</span
-            ><select id="api-model" disabled>
-              <option value="">连接后加载模型</option>
-            </select>
-            <span class="select-chevron" aria-hidden="true">⌄</span></span
-          ></label
-        >
+        <div class="dialog-field">
+          <span id="api-model-label">模型</span>
+          <div
+            id="api-model-selector"
+            class="model-selector"
+            role="radiogroup"
+            aria-labelledby="api-model-label"
+            data-selected="flash"
+          >
+            <span class="model-selector-indicator" aria-hidden="true"></span>
+            <button
+              class="model-option"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              aria-label="DeepSeek V4 Flash，快速经济"
+              data-model="deepseek-v4-flash"
+              tabindex="-1"
+              disabled
+            >
+              <span class="model-option-symbol flash-symbol" aria-hidden="true">ϟ</span>
+              <span><strong>V4 Flash</strong><small>快速 · 经济</small></span>
+            </button>
+            <button
+              class="model-option"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              aria-label="DeepSeek V4 Pro，深度推理"
+              data-model="deepseek-v4-pro"
+              tabindex="-1"
+              disabled
+            >
+              <span class="model-option-symbol pro-symbol" aria-hidden="true">◆</span>
+              <span><strong>V4 Pro</strong><small>深度 · 推理</small></span>
+            </button>
+          </div>
+          <input id="api-model" type="hidden" value="" />
+        </div>
         <div class="privacy-note">
           <strong>安全提示</strong>
           <p>
