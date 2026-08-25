@@ -14,6 +14,12 @@ const SERIES_COLORS = [
   '#65a30d',
 ];
 const MAX_FUNCTIONS = 8;
+const MIN_ADAPTIVE_SEGMENT_PX = 1.25;
+const CURVE_TOLERANCE_PX = 2.25;
+const MAX_ADAPTIVE_DEPTH = 8;
+const MAX_ADAPTIVE_EVALUATIONS = 12_000;
+const SPECIAL_POINT_X_GAP_PX = 18;
+const MAX_SPECIAL_POINTS_PER_SERIES = 16;
 
 interface RuntimeFunction extends GraphFunction {
   compiled?: CompiledExpression;
@@ -32,7 +38,11 @@ interface SamplePoint {
 interface SampleSeries {
   runtime: RuntimeFunction;
   points: Array<SamplePoint | null>;
-  sampleCount: number;
+  validPoints: SamplePoint[];
+}
+
+interface SampleState {
+  evaluations: number;
 }
 
 interface SpecialPoint extends SamplePoint {
@@ -448,25 +458,18 @@ export class Graph2D {
     const ySpan = this.#range.yMax - this.#range.yMin;
     for (const runtime of this.#functions) {
       if (!runtime.compiled) continue;
-      const points: Array<SamplePoint | null> = [];
+      const series = this.#sampleFunction(runtime, sampleCount, ySpan);
       context.beginPath();
       context.strokeStyle = runtime.color;
       context.lineWidth = 2.5;
       context.lineCap = 'round';
       context.lineJoin = 'round';
       let previous: SamplePoint | null = null;
-      for (let index = 0; index <= sampleCount; index += 1) {
-        const x = this.#range.xMin + (index / sampleCount) * (this.#range.xMax - this.#range.xMin);
-        const y = runtime.compiled.evaluate(x);
-        const visible =
-          Number.isFinite(y) && y >= this.#range.yMin - ySpan && y <= this.#range.yMax + ySpan;
-        if (!visible) {
-          points.push(null);
+      for (const point of series.points) {
+        if (!point) {
           previous = null;
           continue;
         }
-        const point: SamplePoint = { x, y, cx: this.#toCanvasX(x), cy: this.#toCanvasY(y) };
-        points.push(point);
         if (!previous || Math.abs(point.cy - previous.cy) > this.#height * 0.8) {
           context.moveTo(point.cx, point.cy);
         } else {
@@ -475,10 +478,98 @@ export class Graph2D {
         previous = point;
       }
       context.stroke();
-      const series: SampleSeries = { runtime, points, sampleCount };
       this.#series.push(series);
       this.#collectSpecialPoints(series);
     }
+  }
+
+  #sampleFunction(runtime: RuntimeFunction, sampleCount: number, ySpan: number): SampleSeries {
+    const basePoints: Array<SamplePoint | null> = [];
+    const xSpan = this.#range.xMax - this.#range.xMin;
+    for (let index = 0; index <= sampleCount; index += 1) {
+      const x = this.#range.xMin + (index / sampleCount) * xSpan;
+      basePoints.push(this.#makeSamplePoint(runtime, x, ySpan));
+    }
+
+    const points: Array<SamplePoint | null> = [];
+    this.#appendSample(points, basePoints[0] ?? null);
+    const state: SampleState = { evaluations: sampleCount + 1 };
+    for (let index = 1; index <= sampleCount; index += 1) {
+      const left = basePoints[index - 1] ?? null;
+      const right = basePoints[index] ?? null;
+      if (!left || !right) {
+        this.#appendSample(points, null);
+        this.#appendSample(points, right);
+        continue;
+      }
+      this.#refineSegment(runtime, left, right, ySpan, 0, state, points);
+    }
+
+    const validPoints = points.filter((point): point is SamplePoint => point !== null);
+    return { runtime, points, validPoints };
+  }
+
+  #makeSamplePoint(runtime: RuntimeFunction, x: number, ySpan: number): SamplePoint | null {
+    const y = runtime.compiled?.evaluate(x) ?? Number.NaN;
+    if (!Number.isFinite(y) || y < this.#range.yMin - ySpan || y > this.#range.yMax + ySpan) {
+      return null;
+    }
+    return { x, y, cx: this.#toCanvasX(x), cy: this.#toCanvasY(y) };
+  }
+
+  #refineSegment(
+    runtime: RuntimeFunction,
+    left: SamplePoint,
+    right: SamplePoint,
+    ySpan: number,
+    depth: number,
+    state: SampleState,
+    points: Array<SamplePoint | null>,
+  ): void {
+    const segmentWidth = Math.abs(right.cx - left.cx);
+    if (state.evaluations >= MAX_ADAPTIVE_EVALUATIONS) {
+      this.#appendSample(points, null);
+      this.#appendSample(points, right);
+      return;
+    }
+
+    const middleX = (left.x + right.x) / 2;
+    const middle = this.#makeSamplePoint(runtime, middleX, ySpan);
+    state.evaluations += 1;
+    const chordY = (left.cy + right.cy) / 2;
+    const deviation = middle ? Math.abs(middle.cy - chordY) : Number.POSITIVE_INFINITY;
+    const verticalJump = Math.abs(right.cy - left.cy);
+    const unresolvedVerticalJump =
+      verticalJump > Math.max(this.#height * 0.35, 48) && segmentWidth <= 3.5;
+    const segmentFits =
+      middle !== null && deviation <= CURVE_TOLERANCE_PX && !unresolvedVerticalJump;
+
+    if (segmentFits) {
+      this.#appendSample(points, right);
+      return;
+    }
+
+    if (middle === null || depth >= MAX_ADAPTIVE_DEPTH || segmentWidth <= MIN_ADAPTIVE_SEGMENT_PX) {
+      this.#appendSample(points, null);
+      this.#appendSample(points, right);
+      return;
+    }
+
+    this.#refineSegment(runtime, left, middle, ySpan, depth + 1, state, points);
+    this.#refineSegment(runtime, middle, right, ySpan, depth + 1, state, points);
+  }
+
+  #appendSample(points: Array<SamplePoint | null>, point: SamplePoint | null): void {
+    const previous = points.at(-1);
+    if (point === null) {
+      if (previous !== null) points.push(null);
+      return;
+    }
+    if (previous?.x === point.x) {
+      points[points.length - 1] = point;
+      return;
+    }
+    points.push(point);
   }
 
   #collectSpecialPoints(series: SampleSeries): void {
@@ -496,7 +587,18 @@ export class Graph2D {
       minimum: '极小值',
       'y-intercept': 'Y 截距',
     } as const;
+    const visiblePoints: typeof points = [];
     for (const point of points) {
+      if (point.y < this.#range.yMin || point.y > this.#range.yMax) continue;
+      const crowded = visiblePoints.some(
+        (existing) =>
+          Math.abs(this.#toCanvasX(existing.x) - this.#toCanvasX(point.x)) < SPECIAL_POINT_X_GAP_PX,
+      );
+      if (crowded) continue;
+      visiblePoints.push(point);
+      if (visiblePoints.length >= MAX_SPECIAL_POINTS_PER_SERIES) break;
+    }
+    for (const point of visiblePoints.slice(0, MAX_SPECIAL_POINTS_PER_SERIES)) {
       if (point.y < this.#range.yMin || point.y > this.#range.yMax) continue;
       this.#pushSpecial({
         ...point,
@@ -693,10 +795,9 @@ export class Graph2D {
     }
     const mathX = this.#toMathX(canvasX);
     for (const series of this.#series) {
-      const ratio = (mathX - this.#range.xMin) / (this.#range.xMax - this.#range.xMin);
-      const index = Math.round(ratio * series.sampleCount);
+      const index = this.#findSampleIndex(series.validPoints, mathX);
       for (let offset = -2; offset <= 2; offset += 1) {
-        const point = series.points[index + offset];
+        const point = series.validPoints[index + offset];
         if (!point) continue;
         const candidateDistance = Math.hypot(point.cx - canvasX, point.cy - canvasY);
         if (candidateDistance < distance) {
@@ -713,6 +814,18 @@ export class Graph2D {
     } else {
       this.#coordinates.textContent = `(${formatNumber(mathX)}, ${formatNumber(this.#toMathY(canvasY))})`;
     }
+  }
+
+  #findSampleIndex(points: SamplePoint[], x: number): number {
+    let low = 0;
+    let high = points.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      const point = points[middle];
+      if (!point || point.x < x) low = middle + 1;
+      else high = middle;
+    }
+    return Math.min(Math.max(low, 0), Math.max(points.length - 1, 0));
   }
 
   #clearSnap(): void {
