@@ -62,6 +62,13 @@ describe('screen-space sampling', () => {
     expect(result.envelopes.every((band) => band.rightCx - band.leftCx <= 1)).toBe(true);
     expect(result.points.some((p) => p && p.x > 9)).toBe(true);
     expect(result.points.some((p) => p && p.x < -9)).toBe(true);
+    const segments = edges(result.points);
+    for (const direction of [-1, 1]) {
+      const covered = segments
+        .filter(([a, b]) => direction * a.x >= 2 && direction * b.x >= 2)
+        .reduce((total, [a, b]) => total + b.x - a.x, 0);
+      expect(covered).toBeGreaterThan(7.7);
+    }
   });
   it('respects a tight budget and never connects an unresolved pole', () => {
     const result = sample('sin(1000/x)+1/(x-0.12345)', range, 3300);

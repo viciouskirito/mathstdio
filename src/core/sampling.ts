@@ -160,14 +160,37 @@ export function samplePlot(
     refine(children[0], leftX, middleX, depth + 1, allowance);
     refine(children[1], middleX, rightX, depth + 1, allowance);
   };
+  const difficult = coarse.map((cell) => {
+    const valid = cell.filter((point): point is PlotPoint => point !== null);
+    if (!valid.length) return false;
+    if (valid.length !== 5) return true;
+    if (valid.every((p) => p.cy < -2) || valid.every((p) => p.cy > height + 2)) return false;
+    const left = valid[0];
+    const right = valid[4];
+    if (!left || !right) return true;
+    return valid.some(
+      (point) =>
+        Math.abs(
+          point.cy - (left.cy + (right.cy - left.cy) * ((point.x - left.x) / (right.x - left.x))),
+        ) > 0.65,
+    );
+  });
+  let remainingDifficult = difficult.filter(Boolean).length;
   for (const [index, cell] of coarse.entries()) {
+    // Reserve a fair share for every unresolved cell, including those on the far side
+    // of a singularity. Unused allowance naturally becomes available to later cells.
+    const allowance = Math.min(
+      maxEvaluations > 16_000 ? 192 : 96,
+      Math.floor((maxEvaluations - result.evaluations) / Math.max(1, remainingDifficult)),
+    );
     refine(
       cell,
       range.xMin + (index / cells) * xSpan,
       range.xMin + ((index + 1) / cells) * xSpan,
       0,
-      { remaining: maxEvaluations > 16_000 ? 192 : 96 },
+      { remaining: allowance },
     );
+    if (difficult[index]) remainingDifficult -= 1;
   }
   return result;
 }

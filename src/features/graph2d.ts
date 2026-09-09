@@ -593,7 +593,7 @@ export class Graph2D {
     this.canvas.dataset.evaluations = String(evaluations);
     this.canvas.dataset.qualityLimited = String(limited);
     byId<HTMLElement>('graph-quality-status').textContent = envelopeCount
-      ? '密集区域以半透明采样带显示；不代表精确值域，放大可查看细节。'
+      ? `密集区域以半透明采样带显示；不代表精确值域，放大可查看细节。${limited ? '部分区间达到采样上限。' : ''}`
       : limited
         ? '部分区间达到采样上限，已断开不确定连线；请放大或选择精细采样。'
         : '未定义点与不确定的间断处断开显示；图像为有限采样近似。';
