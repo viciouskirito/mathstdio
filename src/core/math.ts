@@ -2,6 +2,7 @@ import type { CompiledExpression, VectorOperation, VectorValues, ViewRange } fro
 
 export const MIN_RANGE_SPAN = 1e-6;
 export const MAX_RANGE_SPAN = 1e6;
+export const MAX_RANGE_COORDINATE = 1e12;
 export const MAX_VECTOR_COMPONENT = 1e6;
 
 export type RangeValidation = { ok: true; value: ViewRange } | { ok: false; message: string };
@@ -9,6 +10,9 @@ export type RangeValidation = { ok: true; value: ViewRange } | { ok: false; mess
 export function validateRange(range: ViewRange): RangeValidation {
   const values = [range.xMin, range.xMax, range.yMin, range.yMax];
   if (!values.every(Number.isFinite)) return { ok: false, message: '视图范围必须是有限数字' };
+  if (values.some((value) => Math.abs(value) > MAX_RANGE_COORDINATE)) {
+    return { ok: false, message: '视图坐标绝对值不能超过 1,000,000,000,000，以保证数值精度' };
+  }
   const xSpan = range.xMax - range.xMin;
   const ySpan = range.yMax - range.yMin;
   if (xSpan <= 0 || ySpan <= 0) return { ok: false, message: '最大值必须大于最小值' };
@@ -17,6 +21,12 @@ export function validateRange(range: ViewRange): RangeValidation {
   }
   if (xSpan > MAX_RANGE_SPAN || ySpan > MAX_RANGE_SPAN) {
     return { ok: false, message: '视图范围不能超过 1,000,000' };
+  }
+  if (
+    xSpan < Math.max(Math.abs(range.xMin), Math.abs(range.xMax)) * Number.EPSILON * 32 ||
+    ySpan < Math.max(Math.abs(range.yMin), Math.abs(range.yMax)) * Number.EPSILON * 32
+  ) {
+    return { ok: false, message: '当前坐标下范围过小，已达到浮点精度限制，请扩大范围' };
   }
   return { ok: true, value: { ...range } };
 }
@@ -42,7 +52,9 @@ export function fitYRange(
     values[Math.min(values.length - 1, Math.ceil(values.length * 0.98))] ?? values.at(-1) ?? 7;
   const span = Math.max(high - low, 1e-3);
   const padding = Math.max(span * 0.15, 0.5);
-  return [low - padding, high + padding];
+  const center = low + (high - low) / 2;
+  const halfSpan = Math.min(MAX_RANGE_SPAN / 2, (high - low) / 2 + padding);
+  return [center - halfSpan, center + halfSpan];
 }
 
 export interface SampleValue {
@@ -80,7 +92,8 @@ export function analyzeSampledKeyPoints(
       add({ type: 'root', x: current.x, y: current.y });
     } else if (previous.y * current.y < 0) {
       const x = bisectRoot(expression, previous.x, current.x);
-      add({ type: 'root', x, y: expression.evaluate(x) });
+      const y = expression.evaluate(x);
+      if (Number.isFinite(x) && Number.isFinite(y)) add({ type: 'root', x, y });
     }
 
     const leftSlope = current.y - previous.y;
@@ -106,17 +119,21 @@ function bisectRoot(expression: CompiledExpression, left: number, right: number)
   let a = left;
   let b = right;
   let fa = expression.evaluate(a);
-  for (let iteration = 0; iteration < 28; iteration += 1) {
-    const middle = (a + b) / 2;
+  for (let iteration = 0; iteration < 48; iteration += 1) {
+    const middle = a + (b - a) / 2;
     const fm = expression.evaluate(middle);
-    if (!Number.isFinite(fm) || Math.abs(fm) < 1e-11) return middle;
+    if (!Number.isFinite(fm)) return Number.NaN;
+    if (Math.abs(fm) < 1e-11) return middle;
+    if (middle === a || middle === b) break;
     if (fa * fm <= 0) b = middle;
     else {
       a = middle;
       fa = fm;
     }
   }
-  return (a + b) / 2;
+  // A sign change may be a pole or a jump. Require an actual near-zero residual.
+  const candidate = a + (b - a) / 2;
+  return Math.abs(expression.evaluate(candidate)) <= 1e-9 ? candidate : Number.NaN;
 }
 
 export interface VectorResult {

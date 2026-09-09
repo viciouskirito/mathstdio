@@ -1695,3 +1695,88 @@ body.has-fullscreen {
     transition-duration: 0.01ms !important;
   }
 }
+/* Reproducible function projects and explicit rendering quality. */
+.project-card {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.project-heading,
+.sampling-settings {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.project-heading {
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.project-heading h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+.project-heading p,
+.project-note,
+.project-status,
+#graph-quality-status {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.8;
+}
+.project-fields {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+.project-fields label {
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+  min-width: 0;
+}
+.project-fields input,
+.project-fields select,
+.sampling-settings select {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+.sampling-settings {
+  padding: 8px 20px 16px;
+  font-size: 12px;
+  gap: 8px;
+}
+.sampling-settings select {
+  width: auto;
+}
+#graph-quality-status {
+  flex: 1 1 240px;
+}
+.project-status {
+  margin-top: 16px;
+}
+.project-note {
+  margin-top: 4px;
+}
+@media (max-width: 600px) {
+  .project-card {
+    padding: 16px;
+  }
+  .project-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .project-fields .button-row {
+    flex-wrap: wrap;
+  }
+}

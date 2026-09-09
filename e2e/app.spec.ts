@@ -41,6 +41,12 @@ test('2D expressions, limits, ranges and keyboard controls are robust', async ({
   await first.fill('sin(1/x)');
   await expect(page.locator('.function-row').first()).not.toHaveClass(/has-error/);
   await expect(page.locator('#graph-summary')).toContainText('sin(1/x)');
+  await first.fill('sin(100/x)');
+  await expect(page.locator('.function-row').first()).not.toHaveClass(/has-error/);
+  await expect(page.locator('#graph-summary')).toContainText('sin(100/x)');
+  expect(
+    Number(await page.locator('#graph-canvas').getAttribute('data-envelope-count')),
+  ).toBeGreaterThan(0);
   await first.fill('asin(0.5)+sinh(x)');
   await expect(page.locator('.function-row').first()).not.toHaveClass(/has-error/);
   await expect(page.locator('#graph-summary')).toContainText('asin(0.5)+sinh(x)');

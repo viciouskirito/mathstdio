@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 import { collectPageErrors, openApp } from './helpers';
 
@@ -55,7 +56,10 @@ test('AI connection selects v4 Flash and sanitizes Markdown', async ({ page }, t
   await openApp(page);
   await page.getByRole('button', { name: '打开 AI 设置' }).click();
   await expect(page.locator('#api-dialog')).toBeVisible();
-  await expect(page.locator('#app-version')).toHaveText('v3.0.0');
+  const packageInfo = JSON.parse(
+    readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+  ) as { version: string };
+  await expect(page.locator('#app-version')).toHaveText(`v${packageInfo.version}`);
   await page.locator('#api-key').fill('test-runtime-key');
   await page.getByRole('button', { name: '验证连接' }).click();
   await expect(page.locator('#api-status')).toContainText('已连接');

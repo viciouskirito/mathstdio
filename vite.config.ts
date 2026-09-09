@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { defineConfig } from 'vitest/config';
 
 const packageJson = JSON.parse(
@@ -6,6 +7,30 @@ const packageJson = JSON.parse(
 ) as { version: string };
 
 export default defineConfig({
+  plugins: [
+    {
+      name: 'release-metadata',
+      generateBundle() {
+        let commit = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local';
+        if (commit === 'local') {
+          try {
+            commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          } catch {
+            /* Source archives may not contain Git metadata. */
+          }
+        }
+        this.emitFile({
+          type: 'asset',
+          fileName: 'build-info.json',
+          source: JSON.stringify({
+            version: packageJson.version,
+            commit,
+            builtAt: new Date().toISOString(),
+          }),
+        });
+      },
+    },
+  ],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },

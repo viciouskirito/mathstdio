@@ -3,6 +3,7 @@ import './styles.css';
 
 import { byId } from './core/dom';
 import { Graph2D, type GraphChangeDetail } from './features/graph2d';
+import { ProjectManager } from './features/projects';
 import type { AIManager, AIStateDetail, DeepSeekAnalysisRequest } from './features/ai';
 import type { CurveTool, VectorTool } from './features/scene3d';
 import type { AppState, ThemePreference, ToolId } from './types';
@@ -30,8 +31,10 @@ let sceneModulePromise: ReturnType<typeof importSceneModule> | null = null;
 let aiManagerPromise: Promise<AIManager> | null = null;
 let fullscreenStage: HTMLElement | null = null;
 let toastTimer = 0;
+let projectManager: ProjectManager | null = null;
 
 const graph = new Graph2D((detail) => updateGraphState(detail));
+projectManager = new ProjectManager(graph);
 initializeTheme();
 bindToolNavigation();
 bindTabletControls();
@@ -60,6 +63,7 @@ function updateGraphState(detail: GraphChangeDetail): void {
     selectedId: detail.selectedId,
     range: detail.range,
   };
+  projectManager?.changed();
 }
 
 function bindToolNavigation(): void {
