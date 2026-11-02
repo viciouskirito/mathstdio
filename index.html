@@ -113,7 +113,68 @@
                   </div>
                   <button id="add-function" class="small-button" type="button">＋ 添加</button>
                 </div>
+                <div class="preset-group" aria-label="经典函数预设">
+                  <span class="preset-label">推荐预设：</span>
+                  <div class="chip-grid compact" id="graph-presets">
+                    <button
+                      class="choice-chip compact is-active"
+                      type="button"
+                      data-graph-preset="sin(x)"
+                      aria-pressed="true"
+                    >
+                      正弦波
+                    </button>
+                    <button
+                      class="choice-chip compact"
+                      type="button"
+                      data-graph-preset="exp(-0.2*x)*sin(2*x)"
+                      aria-pressed="false"
+                    >
+                      阻尼振荡
+                    </button>
+                    <button
+                      class="choice-chip compact"
+                      type="button"
+                      data-graph-preset="x^3 - 3*x"
+                      aria-pressed="false"
+                    >
+                      三次极值
+                    </button>
+                    <button
+                      class="choice-chip compact"
+                      type="button"
+                      data-graph-preset="exp(-x^2)"
+                      aria-pressed="false"
+                    >
+                      高斯钟形
+                    </button>
+                    <button
+                      class="choice-chip compact"
+                      type="button"
+                      data-graph-preset="x + 1/x"
+                      aria-pressed="false"
+                    >
+                      对勾函数
+                    </button>
+                  </div>
+                </div>
                 <div id="function-list" class="function-list"></div>
+                <div class="quick-math-bar" aria-label="快捷输入数学符号">
+                  <span class="quick-math-title">快速输入：</span>
+                  <div class="quick-math-buttons">
+                    <button type="button" class="math-key" data-insert="x">x</button>
+                    <button type="button" class="math-key" data-insert="^2">x²</button>
+                    <button type="button" class="math-key" data-insert="^">xⁿ</button>
+                    <button type="button" class="math-key" data-insert="sqrt(">√</button>
+                    <button type="button" class="math-key" data-insert="pi">π</button>
+                    <button type="button" class="math-key" data-insert="e">e</button>
+                    <button type="button" class="math-key" data-insert="sin(">sin</button>
+                    <button type="button" class="math-key" data-insert="cos(">cos</button>
+                    <button type="button" class="math-key" data-insert="tan(">tan</button>
+                    <button type="button" class="math-key" data-insert="abs(">|x|</button>
+                    <button type="button" class="math-key" data-insert="ln(">ln</button>
+                  </div>
+                </div>
                 <p id="function-limit" class="field-message" aria-live="polite"></p>
               </section>
               <section class="control-section">
@@ -157,8 +218,16 @@
                   ><span id="graph-render-time" class="render-time"></span>
                 </div>
                 <div class="toolbar-actions">
-                  <button id="graph-fit-toolbar" class="toolbar-button" type="button">适配</button
-                  ><button
+                  <button
+                    id="graph-export"
+                    class="toolbar-button"
+                    type="button"
+                    title="导出 2D 函数高清图像"
+                  >
+                    导出
+                  </button>
+                  <button id="graph-fit-toolbar" class="toolbar-button" type="button">适配</button>
+                  <button
                     class="toolbar-button fullscreen-toggle"
                     type="button"
                     data-fullscreen="graph-stage"
@@ -304,6 +373,14 @@
                   ><span id="curve-status" class="render-time">等待绘制</span>
                 </div>
                 <div class="toolbar-actions">
+                  <button
+                    id="curve-export"
+                    class="toolbar-button"
+                    type="button"
+                    title="导出 3D 曲线图像"
+                  >
+                    导出
+                  </button>
                   <button id="reset-curve-camera" class="toolbar-button" type="button">
                     重置视角</button
                   ><button
@@ -485,6 +562,14 @@
                   ><span id="vector-status" class="render-time">等待绘制</span>
                 </div>
                 <div class="toolbar-actions">
+                  <button
+                    id="vector-export"
+                    class="toolbar-button"
+                    type="button"
+                    title="导出 3D 向量图像"
+                  >
+                    导出
+                  </button>
                   <button id="reset-vector-camera" class="toolbar-button" type="button">
                     重置视角</button
                   ><button

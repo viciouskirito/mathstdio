@@ -1,6 +1,6 @@
 import { byId, debounce, formatNumber } from '../core/dom';
 import { compileExpression } from '../core/expression';
-import { analyzeSampledKeyPoints, fitYRange, validateRange } from '../core/math';
+import { analyzeSampledKeyPoints, computeDerivative, fitYRange, validateRange } from '../core/math';
 import type { CompiledExpression, GraphFunction, ViewRange } from '../types';
 
 const SERIES_COLORS = [
@@ -40,6 +40,13 @@ interface SpecialPoint extends SamplePoint {
   label: string;
 }
 
+interface SnapPoint extends SamplePoint {
+  color: string;
+  expression: string;
+  label?: string | undefined;
+  derivative?: number | undefined;
+}
+
 export interface GraphChangeDetail {
   functions: GraphFunction[];
   selectedId: string;
@@ -71,7 +78,7 @@ export class Graph2D {
   #selectedId = '';
   #series: SampleSeries[] = [];
   #specialPoints: SpecialPoint[] = [];
-  #snapPoint: (SamplePoint & { color: string; expression: string; label?: string }) | null = null;
+  #snapPoint: SnapPoint | null = null;
   #width = 0;
   #height = 0;
   #dpr = 1;
@@ -153,6 +160,41 @@ export class Graph2D {
     this.#reindexFunctionRows();
     this.render();
     this.#emitChange();
+  }
+
+  insertAtSelected(text: string): void {
+    const selected =
+      this.#functions.find((item) => item.id === this.#selectedId) ?? this.#functions[0];
+    if (!selected) return;
+    const input = selected.input;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    const previous = input.value;
+    input.value = previous.slice(0, start) + text + previous.slice(end);
+    const newPos = start + text.length;
+    input.setSelectionRange(newPos, newPos);
+    input.focus();
+    selected.expression = input.value;
+    this.#compile(selected);
+    this.render();
+    this.#emitChange();
+  }
+
+  setFunctionExpression(id: string, expression: string): void {
+    const target = this.#functions.find((item) => item.id === id) ?? this.#functions[0];
+    if (!target) return;
+    target.input.value = expression;
+    target.expression = expression;
+    this.#compile(target);
+    this.render();
+    this.#emitChange();
+  }
+
+  exportImage(filename = 'math-studio-2d-graph.png'): void {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = this.canvas.toDataURL('image/png');
+    link.click();
   }
 
   reset(): void {
@@ -560,6 +602,27 @@ export class Graph2D {
     if (!point) return;
     const context = this.#context;
     context.save();
+
+    if (point.derivative !== undefined && Number.isFinite(point.derivative)) {
+      context.save();
+      context.strokeStyle = point.color;
+      context.lineWidth = 1.5;
+      context.setLineDash([4, 4]);
+
+      const xSpan = this.#range.xMax - this.#range.xMin;
+      const dxMath = (50 / Math.max(this.#width, 1)) * xSpan;
+      const x1 = point.x - dxMath;
+      const y1 = point.y - point.derivative * dxMath;
+      const x2 = point.x + dxMath;
+      const y2 = point.y + point.derivative * dxMath;
+
+      context.beginPath();
+      context.moveTo(this.#toCanvasX(x1), this.#toCanvasY(y1));
+      context.lineTo(this.#toCanvasX(x2), this.#toCanvasY(y2));
+      context.stroke();
+      context.restore();
+    }
+
     context.strokeStyle = 'rgba(100,110,140,.28)';
     context.setLineDash([4, 5]);
     context.lineWidth = 1;
@@ -682,7 +745,7 @@ export class Graph2D {
   }
 
   #updateSnap(canvasX: number, canvasY: number): void {
-    let best: (SamplePoint & { color: string; expression: string; label?: string }) | null = null;
+    let best: SnapPoint | null = null;
     let distance = 18;
     for (const point of this.#specialPoints) {
       const candidateDistance = Math.hypot(point.cx - canvasX, point.cy - canvasY);
@@ -701,7 +764,15 @@ export class Graph2D {
         const candidateDistance = Math.hypot(point.cx - canvasX, point.cy - canvasY);
         if (candidateDistance < distance) {
           distance = candidateDistance;
-          best = { ...point, color: series.runtime.color, expression: series.runtime.expression };
+          const derivative = series.runtime.compiled
+            ? computeDerivative(series.runtime.compiled, point.x)
+            : undefined;
+          best = {
+            ...point,
+            color: series.runtime.color,
+            expression: series.runtime.expression,
+            derivative,
+          };
         }
       }
     }
@@ -709,7 +780,11 @@ export class Graph2D {
     this.#drawOverlay();
     if (best) {
       const prefix = best.label ? `${best.label} · ` : '';
-      this.#coordinates.textContent = `${prefix}(${formatNumber(best.x)}, ${formatNumber(best.y)})`;
+      const slopeText =
+        best.derivative !== undefined && Number.isFinite(best.derivative)
+          ? `  |  f'(x) = ${formatNumber(best.derivative)}`
+          : '';
+      this.#coordinates.textContent = `${prefix}(${formatNumber(best.x)}, ${formatNumber(best.y)})${slopeText}`;
     } else {
       this.#coordinates.textContent = `(${formatNumber(mathX)}, ${formatNumber(this.#toMathY(canvasY))})`;
     }

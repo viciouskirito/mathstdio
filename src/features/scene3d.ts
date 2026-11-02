@@ -46,6 +46,7 @@ interface SceneHandle {
   resetCamera(): void;
   setCurve(points: Vector3[]): void;
   setVectors(values: VectorValues, result: VectorResult): void;
+  exportImage(filename?: string): void;
   dispose(): void;
 }
 
@@ -127,6 +128,7 @@ class MathScene implements SceneHandle {
       antialias: true,
       alpha: false,
       powerPreference: 'high-performance',
+      preserveDrawingBuffer: true,
     });
     this.#renderer.outputColorSpace = 'srgb';
     this.#renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -291,6 +293,14 @@ class MathScene implements SceneHandle {
     this.render();
   }
 
+  exportImage(filename = 'math-studio-scene.png'): void {
+    this.#renderer.render(this.#scene, this.#camera);
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = this.canvas.toDataURL('image/png');
+    link.click();
+  }
+
   dispose(): void {
     document.removeEventListener('visibilitychange', this.#visibilityChanged);
     this.#resizeObserver.disconnect();
@@ -411,6 +421,8 @@ class UnavailableMathScene implements SceneHandle {
 
   setVectors(): void {}
 
+  exportImage(): void {}
+
   dispose(): void {
     this.#notice.remove();
   }
@@ -529,6 +541,10 @@ export class CurveTool {
     this.#scene.canvas.dataset.pointCount = String(points.length);
     this.#onChange?.({ definition, pointCount: points.length });
     return true;
+  }
+
+  exportImage(filename = 'math-studio-curve-3d.png'): void {
+    this.#scene.exportImage(filename);
   }
 
   dispose(): void {
@@ -658,6 +674,10 @@ export class VectorTool {
     this.#renderResult(values, result);
     this.#onChange?.({ values, result });
     return true;
+  }
+
+  exportImage(filename = 'math-studio-vector-3d.png'): void {
+    this.#scene.exportImage(filename);
   }
 
   dispose(): void {

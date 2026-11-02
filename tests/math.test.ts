@@ -4,6 +4,7 @@ import { compileExpression } from '../src/core/expression';
 import {
   analyzeSampledKeyPoints,
   calculateVector,
+  computeDerivative,
   fitYRange,
   validateRange,
   validateVector,
@@ -67,6 +68,25 @@ describe('key point analysis', () => {
       (point) => point.type === 'root',
     );
     expect(root?.x).toBeCloseTo(0.123, 8);
+  });
+});
+
+describe('derivative calculation', () => {
+  it('computes accurate numerical derivatives for polynomials and trigonometric functions', () => {
+    const quad = expression('x^2');
+    expect(computeDerivative(quad, 2)).toBeCloseTo(4, 4);
+    expect(computeDerivative(quad, 0)).toBeCloseTo(0, 4);
+    expect(computeDerivative(quad, -3)).toBeCloseTo(-6, 4);
+
+    const sinFn = expression('sin(x)');
+    expect(computeDerivative(sinFn, 0)).toBeCloseTo(1, 4);
+    expect(computeDerivative(sinFn, Math.PI / 2)).toBeCloseTo(0, 4);
+    expect(computeDerivative(sinFn, Math.PI)).toBeCloseTo(-1, 4);
+  });
+
+  it('handles non-finite values safely', () => {
+    const fn = expression('1/x');
+    expect(Number.isFinite(computeDerivative(fn, Number.NaN))).toBe(false);
   });
 });
 

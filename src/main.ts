@@ -38,6 +38,8 @@ bindTabletControls();
 bindThemeControl();
 bindFullscreenControls();
 bindAIControls();
+bindToolbarExports();
+bindGraphPresetsAndKeys();
 
 byId<HTMLSpanElement>('app-version').textContent = `v${__APP_VERSION__}`;
 byId<HTMLButtonElement>('api-settings-button').addEventListener(
@@ -364,4 +366,48 @@ function showToast(message: string): void {
   toast.classList.add('is-visible');
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => toast.classList.remove('is-visible'), 2800);
+}
+
+function bindToolbarExports(): void {
+  byId<HTMLButtonElement>('graph-export').addEventListener('click', () => {
+    graph.exportImage();
+    showToast('已导出 2D 函数高清图像');
+  });
+
+  byId<HTMLButtonElement>('curve-export').addEventListener('click', async () => {
+    await ensureSceneTool('curve');
+    curveTool?.exportImage();
+    showToast('已导出 3D 曲线图像');
+  });
+
+  byId<HTMLButtonElement>('vector-export').addEventListener('click', async () => {
+    await ensureSceneTool('vector');
+    vectorTool?.exportImage();
+    showToast('已导出 3D 向量图像');
+  });
+}
+
+function bindGraphPresetsAndKeys(): void {
+  const presetButtons = document.querySelectorAll<HTMLButtonElement>('[data-graph-preset]');
+  for (const button of presetButtons) {
+    button.addEventListener('click', () => {
+      const expr = button.dataset.graphPreset;
+      if (!expr) return;
+      for (const btn of presetButtons) {
+        const active = btn === button;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      }
+      graph.setFunctionExpression(state.graph.selectedId, expr);
+      graph.autoFit();
+      showToast(`已载入预设：${button.textContent ?? expr}`);
+    });
+  }
+
+  for (const key of document.querySelectorAll<HTMLButtonElement>('.math-key')) {
+    key.addEventListener('click', () => {
+      const text = key.dataset.insert;
+      if (text) graph.insertAtSelected(text);
+    });
+  }
 }

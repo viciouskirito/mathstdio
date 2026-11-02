@@ -102,6 +102,16 @@ export function analyzeSampledKeyPoints(
   return points;
 }
 
+export function computeDerivative(expression: CompiledExpression, x: number, h = 1e-5): number {
+  if (!Number.isFinite(x)) return Number.NaN;
+  const step = Math.max(Math.abs(x) * 1e-7, h);
+  const yForward = expression.evaluate(x + step);
+  const yBackward = expression.evaluate(x - step);
+  if (!Number.isFinite(yForward) || !Number.isFinite(yBackward)) return Number.NaN;
+  const derivative = (yForward - yBackward) / (2 * step);
+  return Number.isFinite(derivative) ? derivative : Number.NaN;
+}
+
 function bisectRoot(expression: CompiledExpression, left: number, right: number): number {
   let a = left;
   let b = right;
