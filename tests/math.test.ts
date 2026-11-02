@@ -37,6 +37,10 @@ describe('range utilities', () => {
   });
 
   it('fits a robust visible y range', () => {
+    expect(validateRange({ xMin: 1e13, xMax: 1e13 + 1, yMin: 0, yMax: 1 }).ok).toBe(false);
+    expect(validateRange({ xMin: 1e12 - 0.001, xMax: 1e12, yMin: 0, yMax: 1 }).ok).toBe(false);
+    const fitted = fitYRange([expression('100000*x')], -10, 10);
+    expect(validateRange({ xMin: -10, xMax: 10, yMin: fitted[0], yMax: fitted[1] }).ok).toBe(true);
     const [minimum, maximum] = fitYRange([expression('x^2')], -2, 2);
     expect(minimum).toBeLessThanOrEqual(0);
     expect(maximum).toBeGreaterThan(3.5);
@@ -45,6 +49,22 @@ describe('range utilities', () => {
 });
 
 describe('key point analysis', () => {
+  it.each(['1/(x-0.123)', 'tan(x)', 'floor(x)+0.5'])(
+    'does not report poles or jumps as roots: %s',
+    (source) => {
+      const compiled = expression(source);
+      const samples = Array.from({ length: 201 }, (_, index) => {
+        const x = -2 + index * 0.02;
+        return { x, y: compiled.evaluate(x) };
+      });
+      const roots = analyzeSampledKeyPoints(compiled, samples, -2, 2).filter(
+        (p) => p.type === 'root',
+      );
+      for (const root of roots)
+        expect(Math.abs(compiled.evaluate(root.x))).toBeLessThanOrEqual(1e-9);
+      if (!source.startsWith('tan')) expect(roots).toHaveLength(0);
+    },
+  );
   it('finds roots, extrema and the y-intercept', () => {
     const compiled = expression('x^2-1');
     const samples = Array.from({ length: 401 }, (_, index) => {

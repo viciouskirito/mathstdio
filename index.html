@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Math Studio 是面向学生与教师的 2D 函数、3D 参数曲线和向量可视化实验室。"
+      content="Math Studio 提供可靠的函数可视化、3D 参数曲线、向量运算、函数项目版本与图像数据导出，支持教学和工程分析。"
     />
     <meta name="theme-color" content="#f7f8fc" />
     <title>Math Studio · 可视化数学实验室</title>
@@ -96,7 +96,7 @@
             <div>
               <p class="eyebrow graph-text">FUNCTION LAB</p>
               <h1>2D 函数图像</h1>
-              <p>比较函数、寻找关键点，在画布上直接平移与缩放。</p>
+              <p>比较函数、检验数值，将图像和项目带入你的工作流程。</p>
             </div>
             <div class="heading-badge graph-badge"><span aria-hidden="true">●</span> 实时采样</div>
           </div>
@@ -250,8 +250,65 @@
               </div>
               <p id="graph-help" class="sr-only">方向键平移，＋和－缩放，Home 恢复默认范围。</p>
               <p id="graph-summary" class="visual-summary" aria-live="polite"></p>
+              <div class="sampling-settings">
+                <label for="graph-quality">采样质量</label>
+                <select id="graph-quality">
+                  <option value="balanced">均衡</option>
+                  <option value="precise">精细</option>
+                </select>
+                <p id="graph-quality-status" role="status"></p>
+              </div>
             </section>
           </div>
+          <section class="project-card" aria-labelledby="project-title">
+            <div class="project-heading">
+              <div>
+                <h2 id="project-title">函数项目</h2>
+                <p>自动保存本机草稿 · 保留最近 20 个版本 · JSON 文件可跨设备交换</p>
+              </div>
+              <div class="button-row compact">
+                <button id="graph-export-png" class="secondary-button" type="button">
+                  导出 PNG
+                </button>
+                <button id="graph-export-csv" class="secondary-button" type="button">
+                  导出 CSV
+                </button>
+              </div>
+            </div>
+            <div class="project-fields">
+              <label
+                >项目名称<input
+                  id="project-name"
+                  type="text"
+                  maxlength="80"
+                  value="未命名项目"
+                  autocomplete="off"
+              /></label>
+              <div class="button-row compact">
+                <button id="project-save" class="primary-button" type="button">保存版本</button>
+                <button id="project-export" class="secondary-button" type="button">导出项目</button>
+                <button id="project-import" class="secondary-button" type="button">导入项目</button>
+                <input id="project-file" type="file" accept=".json,application/json" hidden />
+              </div>
+              <label
+                >已保存的版本<select
+                  id="project-versions"
+                  disabled
+                  aria-label="已保存的版本"
+                ></select
+              ></label>
+              <button id="project-restore" class="secondary-button" type="button" disabled>
+                恢复所选版本
+              </button>
+            </div>
+            <p id="project-status" class="project-status" role="status">
+              项目仅保存在此浏览器；重要工作请导出备份。项目文件不包含 AI 密钥。
+            </p>
+            <p class="project-note">
+              CSV 按当前 X 范围为每条函数导出 1001 个等距样本，不受 Y
+              视图裁剪影响；采样不能证明极限或捕获所有振荡。
+            </p>
+          </section>
           <section class="ai-card" aria-labelledby="graph-ai-title">
             <div class="ai-card-heading">
               <div>

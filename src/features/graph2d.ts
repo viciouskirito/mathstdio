@@ -2,6 +2,8 @@ import { byId, debounce, formatNumber } from '../core/dom';
 import { compileExpression } from '../core/expression';
 import { analyzeSampledKeyPoints, computeDerivative, fitYRange, validateRange } from '../core/math';
 import type { CompiledExpression, GraphFunction, ViewRange } from '../types';
+import { samplePlot, type PlotPoint, type DensityBand, type SampledPlot } from '../core/sampling';
+import type { GraphProject } from '../core/projects';
 
 const SERIES_COLORS = [
   '#2563eb',
@@ -14,25 +16,25 @@ const SERIES_COLORS = [
   '#65a30d',
 ];
 const MAX_FUNCTIONS = 8;
+const SPECIAL_POINT_X_GAP_PX = 18;
+const MAX_SPECIAL_POINTS_PER_SERIES = 16;
 
 interface RuntimeFunction extends GraphFunction {
   compiled?: CompiledExpression;
   row: HTMLDivElement;
   input: HTMLInputElement;
   errorElement: HTMLParagraphElement;
+  sampleCache?: { key: string; value: SampledPlot };
 }
 
-interface SamplePoint {
-  x: number;
-  y: number;
-  cx: number;
-  cy: number;
-}
+type SamplePoint = PlotPoint;
+type EnvelopeSegment = DensityBand;
 
 interface SampleSeries {
   runtime: RuntimeFunction;
   points: Array<SamplePoint | null>;
-  sampleCount: number;
+  validPoints: SamplePoint[];
+  envelopes: EnvelopeSegment[];
 }
 
 interface SpecialPoint extends SamplePoint {
@@ -83,6 +85,80 @@ export class Graph2D {
   #height = 0;
   #dpr = 1;
   #nextId = 1;
+  #quality: 'balanced' | 'precise' = 'balanced';
+  #restoring = false;
+
+  snapshot(name: string): GraphProject {
+    // Read live inputs so an export immediately after typing never loses the last edit.
+    return {
+      schemaVersion: 1,
+      name: name.trim() || '未命名项目',
+      functions: this.#functions.map((item) => ({
+        expression: item.input.value,
+        color: item.color,
+      })),
+      range: this.range,
+      selectedIndex: Math.max(
+        0,
+        this.#functions.findIndex((item) => item.id === this.#selectedId),
+      ),
+      quality: this.#quality,
+    };
+  }
+
+  restore(project: GraphProject): void {
+    this.#restoring = true;
+    for (const item of this.#functions) item.row.remove();
+    this.#functions.length = 0;
+    this.#range = { ...project.range };
+    this.#quality = project.quality;
+    byId<HTMLSelectElement>('graph-quality').value = this.#quality;
+    for (const item of project.functions) this.addFunction(item.expression, item.color, false);
+    const selected = this.#functions[project.selectedIndex];
+    if (selected) this.#selectFunction(selected.id);
+    this.#restoring = false;
+    this.#syncRangeInputs();
+    this.#rangeError.textContent = '';
+    this.render();
+    this.#emitChange();
+  }
+
+  exportImage(): Promise<Blob | null> {
+    for (const item of this.#functions) {
+      item.expression = item.input.value;
+      this.#compile(item);
+    }
+    this.render();
+    const output = document.createElement('canvas');
+    output.width = this.#baseCanvas.width;
+    output.height = this.#baseCanvas.height + (this.#functions.length * 24 + 54) * this.#dpr;
+    const context = output.getContext('2d');
+    if (!context) return Promise.resolve(null);
+    context.fillStyle = getComputedStyle(document.documentElement)
+      .getPropertyValue('--canvas')
+      .trim();
+    context.fillRect(0, 0, output.width, output.height);
+    context.drawImage(this.#baseCanvas, 0, 0);
+    context.scale(this.#dpr, this.#dpr);
+    context.font = '12px sans-serif';
+    this.#functions.forEach((item, index) => {
+      context.fillStyle = item.color;
+      context.fillText(
+        `f${index + 1}(x) = ${item.expression}`,
+        16,
+        this.#height + 24 + index * 24,
+        this.#width - 32,
+      );
+    });
+    context.fillStyle = '#737a8c';
+    context.fillText(
+      `Math Studio · ${new Date().toISOString()} · 阴影为采样估计`,
+      16,
+      this.#height + 32 + this.#functions.length * 24,
+      this.#width - 32,
+    );
+    return new Promise((resolve) => output.toBlob(resolve, 'image/png'));
+  }
 
   constructor(onChange?: (detail: GraphChangeDetail) => void) {
     const context = this.canvas.getContext('2d');
@@ -232,7 +308,7 @@ export class Graph2D {
   }
 
   render(): void {
-    if (this.#width < 10 || this.#height < 10) return;
+    if (this.#restoring || this.#width < 10 || this.#height < 10) return;
     const started = performance.now();
     this.#snapPoint = null;
     this.#series = [];
@@ -259,6 +335,12 @@ export class Graph2D {
   }
 
   #bindControls(): void {
+    byId<HTMLSelectElement>('graph-quality').addEventListener('change', (event) => {
+      this.#quality =
+        (event.target as HTMLSelectElement).value === 'precise' ? 'precise' : 'balanced';
+      this.render();
+      this.#emitChange();
+    });
     byId<HTMLButtonElement>('add-function').addEventListener('click', () => this.addFunction());
     byId<HTMLButtonElement>('auto-fit').addEventListener('click', () => this.autoFit());
     byId<HTMLButtonElement>('graph-fit-toolbar').addEventListener('click', () => this.autoFit());
@@ -303,6 +385,7 @@ export class Graph2D {
     input.id = inputId;
     input.className = 'function-input';
     input.type = 'text';
+    input.maxLength = 200;
     input.value = expression;
     input.placeholder = '例如 sin(x)';
     input.spellcheck = false;
@@ -328,6 +411,7 @@ export class Graph2D {
 
     const runtime: RuntimeFunction = { id, expression, color, row, input, errorElement };
     const compileLater = debounce(() => {
+      if (!this.#functions.includes(runtime)) return;
       runtime.expression = input.value;
       this.#compile(runtime);
       this.render();
@@ -386,11 +470,15 @@ export class Graph2D {
   }
 
   #applyRangeInputs(): void {
+    const value = (key: keyof ViewRange): number => {
+      const input = this.#rangeInputs[key];
+      return input.value === input.dataset.displayValue ? this.#range[key] : input.valueAsNumber;
+    };
     const candidate: ViewRange = {
-      xMin: this.#rangeInputs.xMin.valueAsNumber,
-      xMax: this.#rangeInputs.xMax.valueAsNumber,
-      yMin: this.#rangeInputs.yMin.valueAsNumber,
-      yMax: this.#rangeInputs.yMax.valueAsNumber,
+      xMin: value('xMin'),
+      xMax: value('xMax'),
+      yMin: value('yMin'),
+      yMax: value('yMax'),
     };
     const result = validateRange(candidate);
     for (const input of Object.values(this.#rangeInputs)) {
@@ -407,10 +495,12 @@ export class Graph2D {
   }
 
   #syncRangeInputs(): void {
-    this.#rangeInputs.xMin.value = formatNumber(this.#range.xMin);
-    this.#rangeInputs.xMax.value = formatNumber(this.#range.xMax);
-    this.#rangeInputs.yMin.value = formatNumber(this.#range.yMin);
-    this.#rangeInputs.yMax.value = formatNumber(this.#range.yMax);
+    for (const key of Object.keys(this.#rangeInputs) as Array<keyof ViewRange>) {
+      this.#rangeInputs[key].value = formatNumber(this.#range[key], 6);
+      this.#rangeInputs[key].dataset.displayValue = this.#rangeInputs[key].value;
+      this.#rangeInputs[key].title = String(this.#range[key]);
+      this.#rangeInputs[key].setAttribute('aria-invalid', 'false');
+    }
   }
 
   #configureContext(context: CanvasRenderingContext2D): void {
@@ -435,12 +525,12 @@ export class Graph2D {
     context.lineWidth = 1;
     context.strokeStyle = gridColor;
     context.beginPath();
-    for (let x = Math.ceil(this.#range.xMin / xStep) * xStep; x <= this.#range.xMax; x += xStep) {
+    for (const x of this.#ticks(this.#range.xMin, this.#range.xMax, xStep)) {
       const cx = this.#toCanvasX(x);
       context.moveTo(cx, 0);
       context.lineTo(cx, this.#height);
     }
-    for (let y = Math.ceil(this.#range.yMin / yStep) * yStep; y <= this.#range.yMax; y += yStep) {
+    for (const y of this.#ticks(this.#range.yMin, this.#range.yMax, yStep)) {
       const cy = this.#toCanvasY(y);
       context.moveTo(0, cy);
       context.lineTo(this.#width, cy);
@@ -467,7 +557,7 @@ export class Graph2D {
     context.textAlign = 'center';
     context.textBaseline = 'top';
     const labelY = Math.min(this.#height - 18, Math.max(5, originY + 6));
-    for (let x = Math.ceil(this.#range.xMin / xStep) * xStep; x <= this.#range.xMax; x += xStep) {
+    for (const x of this.#ticks(this.#range.xMin, this.#range.xMax, xStep)) {
       if (Math.abs(x) < xStep * 0.01) continue;
       context.fillText(
         formatNumber(x, 3),
@@ -478,7 +568,7 @@ export class Graph2D {
     context.textAlign = 'right';
     context.textBaseline = 'middle';
     const labelX = Math.min(this.#width - 5, Math.max(34, originX - 6));
-    for (let y = Math.ceil(this.#range.yMin / yStep) * yStep; y <= this.#range.yMax; y += yStep) {
+    for (const y of this.#ticks(this.#range.yMin, this.#range.yMax, yStep)) {
       if (Math.abs(y) < yStep * 0.01) continue;
       context.fillText(formatNumber(y, 3), labelX, this.#toCanvasY(y));
     }
@@ -486,30 +576,49 @@ export class Graph2D {
 
   #drawFunctions(): void {
     const context = this.#baseContext;
-    const sampleCount = Math.min(1800, Math.max(600, Math.round(this.#width * 1.5)));
-    const ySpan = this.#range.yMax - this.#range.yMin;
+    let envelopeCount = 0;
+    let evaluations = 0;
+    let limited = false;
     for (const runtime of this.#functions) {
       if (!runtime.compiled) continue;
-      const points: Array<SamplePoint | null> = [];
+      const cacheKey = JSON.stringify([
+        runtime.expression,
+        this.#range,
+        this.#width,
+        this.#height,
+        this.#quality,
+      ]);
+      const samples =
+        runtime.sampleCache?.key === cacheKey
+          ? runtime.sampleCache.value
+          : samplePlot(
+              runtime.compiled,
+              this.#range,
+              this.#width,
+              this.#height,
+              this.#quality === 'precise' ? 32_000 : 16_000,
+            );
+      runtime.sampleCache = { key: cacheKey, value: samples };
+      const series: SampleSeries = {
+        runtime,
+        points: samples.points,
+        envelopes: samples.envelopes,
+        validPoints: samples.points.filter((point): point is SamplePoint => point !== null),
+      };
+      evaluations += samples.evaluations;
+      limited ||= samples.limited;
       context.beginPath();
       context.strokeStyle = runtime.color;
       context.lineWidth = 2.5;
       context.lineCap = 'round';
       context.lineJoin = 'round';
       let previous: SamplePoint | null = null;
-      for (let index = 0; index <= sampleCount; index += 1) {
-        const x = this.#range.xMin + (index / sampleCount) * (this.#range.xMax - this.#range.xMin);
-        const y = runtime.compiled.evaluate(x);
-        const visible =
-          Number.isFinite(y) && y >= this.#range.yMin - ySpan && y <= this.#range.yMax + ySpan;
-        if (!visible) {
-          points.push(null);
+      for (const point of series.points) {
+        if (!point) {
           previous = null;
           continue;
         }
-        const point: SamplePoint = { x, y, cx: this.#toCanvasX(x), cy: this.#toCanvasY(y) };
-        points.push(point);
-        if (!previous || Math.abs(point.cy - previous.cy) > this.#height * 0.8) {
+        if (!previous) {
           context.moveTo(point.cx, point.cy);
         } else {
           context.lineTo(point.cx, point.cy);
@@ -517,15 +626,69 @@ export class Graph2D {
         previous = point;
       }
       context.stroke();
-      const series: SampleSeries = { runtime, points, sampleCount };
+      this.#drawEnvelopes(context, runtime.color, series.envelopes);
+      envelopeCount += series.envelopes.length;
       this.#series.push(series);
       this.#collectSpecialPoints(series);
     }
+    this.canvas.dataset.envelopeCount = String(envelopeCount);
+    this.canvas.dataset.evaluations = String(evaluations);
+    this.canvas.dataset.qualityLimited = String(limited);
+    byId<HTMLElement>('graph-quality-status').textContent = envelopeCount
+      ? `密集区域以半透明采样带显示；不代表精确值域，放大可查看细节。${limited ? '部分区间达到采样上限。' : ''}`
+      : limited
+        ? '部分区间达到采样上限，已断开不确定连线；请放大或选择精细采样。'
+        : '未定义点与不确定的间断处断开显示；图像为有限采样近似。';
+  }
+
+  #drawEnvelopes(
+    context: CanvasRenderingContext2D,
+    color: string,
+    envelopes: EnvelopeSegment[],
+  ): void {
+    if (!envelopes.length) return;
+    const joinedEnvelopes = envelopes;
+    context.save();
+    context.beginPath();
+    for (const envelope of joinedEnvelopes) {
+      context.moveTo(envelope.leftCx, envelope.minCy);
+      context.lineTo(envelope.rightCx, envelope.minCy);
+      context.lineTo(envelope.rightCx, envelope.maxCy);
+      context.lineTo(envelope.leftCx, envelope.maxCy);
+      context.closePath();
+    }
+    context.fillStyle = color;
+    context.globalAlpha = 0.1;
+    context.fill();
+
+    context.beginPath();
+    context.strokeStyle = color;
+    context.globalAlpha = 0.3;
+    context.lineWidth = 1;
+    context.lineCap = 'round';
+    for (const envelope of joinedEnvelopes) {
+      context.moveTo(envelope.leftCx, envelope.minCy);
+      context.lineTo(envelope.rightCx, envelope.minCy);
+      context.moveTo(envelope.leftCx, envelope.maxCy);
+      context.lineTo(envelope.rightCx, envelope.maxCy);
+    }
+    context.stroke();
+
+    context.beginPath();
+    context.globalAlpha = 0.16;
+    context.lineWidth = 1.5;
+    for (const envelope of joinedEnvelopes) {
+      const centerCx = (envelope.leftCx + envelope.rightCx) / 2;
+      context.moveTo(centerCx, envelope.minCy);
+      context.lineTo(centerCx, envelope.maxCy);
+    }
+    context.stroke();
+    context.restore();
   }
 
   #collectSpecialPoints(series: SampleSeries): void {
     const expression = series.runtime.compiled;
-    if (!expression) return;
+    if (!expression || series.envelopes.length > 4) return;
     const points = analyzeSampledKeyPoints(
       expression,
       series.points,
@@ -538,7 +701,18 @@ export class Graph2D {
       minimum: '极小值',
       'y-intercept': 'Y 截距',
     } as const;
+    const visiblePoints: typeof points = [];
     for (const point of points) {
+      if (point.y < this.#range.yMin || point.y > this.#range.yMax) continue;
+      const crowded = visiblePoints.some(
+        (existing) =>
+          Math.abs(this.#toCanvasX(existing.x) - this.#toCanvasX(point.x)) < SPECIAL_POINT_X_GAP_PX,
+      );
+      if (crowded) continue;
+      visiblePoints.push(point);
+      if (visiblePoints.length >= MAX_SPECIAL_POINTS_PER_SERIES) break;
+    }
+    for (const point of visiblePoints.slice(0, MAX_SPECIAL_POINTS_PER_SERIES)) {
       if (point.y < this.#range.yMin || point.y > this.#range.yMax) continue;
       this.#pushSpecial({
         ...point,
@@ -756,10 +930,9 @@ export class Graph2D {
     }
     const mathX = this.#toMathX(canvasX);
     for (const series of this.#series) {
-      const ratio = (mathX - this.#range.xMin) / (this.#range.xMax - this.#range.xMin);
-      const index = Math.round(ratio * series.sampleCount);
+      const index = this.#findSampleIndex(series.validPoints, mathX);
       for (let offset = -2; offset <= 2; offset += 1) {
-        const point = series.points[index + offset];
+        const point = series.validPoints[index + offset];
         if (!point) continue;
         const candidateDistance = Math.hypot(point.cx - canvasX, point.cy - canvasY);
         if (candidateDistance < distance) {
@@ -790,6 +963,18 @@ export class Graph2D {
     }
   }
 
+  #findSampleIndex(points: SamplePoint[], x: number): number {
+    let low = 0;
+    let high = points.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      const point = points[middle];
+      if (!point || point.x < x) low = middle + 1;
+      else high = middle;
+    }
+    return Math.min(Math.max(low, 0), Math.max(points.length - 1, 0));
+  }
+
   #clearSnap(): void {
     const hadOverlay = Boolean(this.#snapPoint);
     this.#snapPoint = null;
@@ -803,6 +988,12 @@ export class Graph2D {
     const normalized = rough / power;
     const factor = normalized < 1.5 ? 1 : normalized < 3 ? 2 : normalized < 7 ? 5 : 10;
     return factor * power;
+  }
+
+  #ticks(minimum: number, maximum: number, step: number): number[] {
+    const start = Math.ceil(minimum / step) * step;
+    const count = Math.min(32, Math.max(0, Math.floor((maximum - start) / step) + 1));
+    return Array.from({ length: count }, (_, index) => start + index * step);
   }
 
   #toCanvasX(value: number): number {
@@ -825,6 +1016,7 @@ export class Graph2D {
   }
 
   #emitChange(): void {
+    if (this.#restoring) return;
     this.#onChange?.({
       functions: this.#functions.map(({ id, expression, color, error }) => {
         const item: GraphFunction = { id, expression, color };
