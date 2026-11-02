@@ -374,7 +374,7 @@ function showToast(message: string): void {
 
 function bindToolbarExports(): void {
   byId<HTMLButtonElement>('graph-export').addEventListener('click', () => {
-    graph.exportImage();
+    void graph.downloadImage();
     showToast('已导出 2D 函数高清图像');
   });
 

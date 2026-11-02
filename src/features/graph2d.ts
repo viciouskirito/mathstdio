@@ -266,11 +266,15 @@ export class Graph2D {
     this.#emitChange();
   }
 
-  exportImage(filename = 'math-studio-2d-graph.png'): void {
+  async downloadImage(filename = 'math-studio-2d-graph.png'): Promise<void> {
+    const blob = await this.exportImage();
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.download = filename;
-    link.href = this.canvas.toDataURL('image/png');
+    link.href = url;
     link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   reset(): void {
